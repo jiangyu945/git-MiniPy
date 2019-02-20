@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         widget.cpp \
-    v4l2Cap.c
+    v4l2Cap.c \
+    workerthread.cpp
 
 HEADERS  += widget.h \
-    v4l2Cap.h
+    v4l2Cap.h \
+    workerthread.h
 
 FORMS    += widget.ui
 

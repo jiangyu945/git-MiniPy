@@ -1,8 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-extern uchar* jpg_buf;
-extern uint size_jpg;
+QMutex myMutex;
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -11,6 +10,7 @@ Widget::Widget(QWidget *parent) :
     ui->setupUi(this);
 
     init();  //初始化
+    startObjthread(); //启动多线程
 }
 
 Widget::~Widget()
@@ -41,7 +41,23 @@ void Widget::init()
     connect(ui->Bt_CamClose,SIGNAL(clicked(bool)),this,SLOT(doProcessCloseCam())); //关闭摄像头
     connect(timer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
 
-    connect(this,SIGNAL(SigToDisplay()),this,SLOT(doProcessDisplay()));  //发送信号,进行显示
+//    connect(this,SIGNAL(SigToDisplay()),this,SLOT(doProcessDisplay()));  //发送信号,进行显示
+}
+
+//开启线程
+void Widget::startObjthread()
+{
+    workerObj = new workerThread; //创建一个object
+    workerObj->moveToThread(&worker);            //将对象移动到线程
+    connect(this,SIGNAL(SigToReadFrame()),workerObj,SLOT(doProcessReadFrame()));  //图像采集
+
+    //线程结束后自动销毁
+    connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));    //资源回收
+
+    connect(workerObj,SIGNAL(SigToDisplay(unsigned char*,unsigned int)),this,SLOT(doProcessDisplay(unsigned char*,unsigned int)));  //图像显示
+
+    //启动线程
+    worker.start();
 }
 
 
@@ -60,37 +76,36 @@ void Widget::doProcessOpenCam(){
     set_cap_frame();
     //获取帧率
     get_fps();
-    qDebug() << "got fps..." << endl;
     //内存映射初始化
     init_mmap();
-    qDebug() << "mmap inited..." << endl;
     //开启视频流
     start_cap();
-    qDebug() << "started cap..." << endl;
 
     epoll_cam();
-    qDebug() << "start to epoll camera..." << endl;
 
     ui->Bt_CamOpen->setEnabled(false);
-    timer->start(1000.000/30);    //开启定时器,超时发出信号
+    timer->start(1000.000/100);    //开启定时器,超时发出信号
 }
 
 //采集图片
 void Widget::doProcessCapture()
 {
-    read_frame();   //获取一帧图像
-    qDebug() << "send sig to display..." << endl;
-    emit SigToDisplay();
+    emit SigToReadFrame();
 }
 
 //图像显示
-void Widget::doProcessDisplay()
+void Widget::doProcessDisplay(unsigned char *buf,unsigned int len)
 {
-    //加载图像数据到img
-    img.loadFromData(jpg_buf,size_jpg);
+    qDebug() << "start to display\n";
 
-    //释放临时缓存空间
-    free(jpg_buf);
+    //加锁
+    myMutex.lock();
+
+    bool ret = img.loadFromData(buf,len);  //加载图像数据到img
+    if(!ret){
+        qDebug() << "LoadFromData failed!\n";
+    }
+    free(buf);  //释放临时缓存空间
 
     //图片自适应窗口标签大小
     img.scaled(ui->label_show->size(),Qt::IgnoreAspectRatio);
@@ -101,7 +116,27 @@ void Widget::doProcessDisplay()
 
     ui->Bt_SaveImg->setEnabled(true);
     ui->Bt_CamClose->setEnabled(true);
+
+    //解锁
+    myMutex.unlock();
+
 }
+
+// //QPainter绘制图像
+//void Widget::paintEvent(QPaintEvent *)
+//{
+//    QPainter mypainter(this);
+//    //加载图像数据到img
+//    img.loadFromData(jpg_buf,size_jpg);
+
+//    //释放临时缓存空间
+//    free(jpg_buf);
+
+//    ui->Bt_SaveImg->setEnabled(true);
+//    ui->Bt_CamClose->setEnabled(true);
+
+//    mypainter.drawPixmap(0,0,390,272,QPixmap::fromImage(img));
+//}
 
 //保存图片
 void Widget::doProcessSaveImg()

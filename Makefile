@@ -50,11 +50,15 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp \
 		widget.cpp \
-		v4l2Cap.c moc_widget.cpp
+		v4l2Cap.c \
+		workerthread.cpp moc_widget.cpp \
+		moc_workerthread.cpp
 OBJECTS       = main.o \
 		widget.o \
 		v4l2Cap.o \
-		moc_widget.o
+		workerthread.o \
+		moc_widget.o \
+		moc_workerthread.o
 DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
 		/opt/qt5.7.0/mkspecs/common/unix.conf \
 		/opt/qt5.7.0/mkspecs/common/linux.conf \
@@ -153,9 +157,11 @@ DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
 		/opt/qt5.7.0/mkspecs/features/yacc.prf \
 		/opt/qt5.7.0/mkspecs/features/lex.prf \
 		MiniPy.pro widget.h \
-		v4l2Cap.h main.cpp \
+		v4l2Cap.h \
+		workerthread.h main.cpp \
 		widget.cpp \
-		v4l2Cap.c
+		v4l2Cap.c \
+		workerthread.cpp
 QMAKE_TARGET  = MiniPy
 DESTDIR       = 
 TARGET        = MiniPy
@@ -384,8 +390,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents widget.h v4l2Cap.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c $(DISTDIR)/
+	$(COPY_FILE) --parents widget.h v4l2Cap.h workerthread.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c workerthread.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents widget.ui $(DISTDIR)/
 
 
@@ -412,9 +418,9 @@ benchmark: first
 
 compiler_rcc_make_all:
 compiler_rcc_clean:
-compiler_moc_header_make_all: moc_widget.cpp
+compiler_moc_header_make_all: moc_widget.cpp moc_workerthread.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_widget.cpp
+	-$(DEL_FILE) moc_widget.cpp moc_workerthread.cpp
 moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtWidgets/qwidget.h \
 		/opt/qt5.7.0/include/QtGui/qwindowdefs.h \
@@ -516,14 +522,73 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtWidgets/qmessagebox.h \
 		/opt/qt5.7.0/include/QtWidgets/qdialog.h \
 		/opt/qt5.7.0/include/QtGui/QImage \
+		/opt/qt5.7.0/include/QtGui/QPixmap \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
+		/opt/qt5.7.0/include/QtGui/QPainter \
+		/opt/qt5.7.0/include/QtGui/qpainter.h \
+		/opt/qt5.7.0/include/QtGui/qtextoption.h \
+		/opt/qt5.7.0/include/QtGui/qpen.h \
+		/opt/qt5.7.0/include/QtCore/QThread \
+		/opt/qt5.7.0/include/QtCore/qthread.h \
 		v4l2Cap.h \
 		widget.h \
 		/opt/qt5.7.0/bin/moc
 	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include widget.h -o moc_widget.cpp
+
+moc_workerthread.cpp: /opt/qt5.7.0/include/QtCore/QObject \
+		/opt/qt5.7.0/include/QtCore/qobject.h \
+		/opt/qt5.7.0/include/QtCore/qobjectdefs.h \
+		/opt/qt5.7.0/include/QtCore/qnamespace.h \
+		/opt/qt5.7.0/include/QtCore/qglobal.h \
+		/opt/qt5.7.0/include/QtCore/qconfig.h \
+		/opt/qt5.7.0/include/QtCore/qfeatures.h \
+		/opt/qt5.7.0/include/QtCore/qsystemdetection.h \
+		/opt/qt5.7.0/include/QtCore/qprocessordetection.h \
+		/opt/qt5.7.0/include/QtCore/qcompilerdetection.h \
+		/opt/qt5.7.0/include/QtCore/qtypeinfo.h \
+		/opt/qt5.7.0/include/QtCore/qtypetraits.h \
+		/opt/qt5.7.0/include/QtCore/qisenum.h \
+		/opt/qt5.7.0/include/QtCore/qsysinfo.h \
+		/opt/qt5.7.0/include/QtCore/qlogging.h \
+		/opt/qt5.7.0/include/QtCore/qflags.h \
+		/opt/qt5.7.0/include/QtCore/qatomic.h \
+		/opt/qt5.7.0/include/QtCore/qbasicatomic.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_bootstrap.h \
+		/opt/qt5.7.0/include/QtCore/qgenericatomic.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_cxx11.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_msvc.h \
+		/opt/qt5.7.0/include/QtCore/qglobalstatic.h \
+		/opt/qt5.7.0/include/QtCore/qmutex.h \
+		/opt/qt5.7.0/include/QtCore/qnumeric.h \
+		/opt/qt5.7.0/include/QtCore/qversiontagging.h \
+		/opt/qt5.7.0/include/QtCore/qobjectdefs_impl.h \
+		/opt/qt5.7.0/include/QtCore/qstring.h \
+		/opt/qt5.7.0/include/QtCore/qchar.h \
+		/opt/qt5.7.0/include/QtCore/qbytearray.h \
+		/opt/qt5.7.0/include/QtCore/qrefcount.h \
+		/opt/qt5.7.0/include/QtCore/qarraydata.h \
+		/opt/qt5.7.0/include/QtCore/qstringbuilder.h \
+		/opt/qt5.7.0/include/QtCore/qlist.h \
+		/opt/qt5.7.0/include/QtCore/qalgorithms.h \
+		/opt/qt5.7.0/include/QtCore/qiterator.h \
+		/opt/qt5.7.0/include/QtCore/qhashfunctions.h \
+		/opt/qt5.7.0/include/QtCore/qpair.h \
+		/opt/qt5.7.0/include/QtCore/qbytearraylist.h \
+		/opt/qt5.7.0/include/QtCore/qstringlist.h \
+		/opt/qt5.7.0/include/QtCore/qregexp.h \
+		/opt/qt5.7.0/include/QtCore/qstringmatcher.h \
+		/opt/qt5.7.0/include/QtCore/qcoreevent.h \
+		/opt/qt5.7.0/include/QtCore/qscopedpointer.h \
+		/opt/qt5.7.0/include/QtCore/qmetatype.h \
+		/opt/qt5.7.0/include/QtCore/qvarlengtharray.h \
+		/opt/qt5.7.0/include/QtCore/qcontainerfwd.h \
+		/opt/qt5.7.0/include/QtCore/qobject_impl.h \
+		workerthread.h \
+		/opt/qt5.7.0/bin/moc
+	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include workerthread.h -o moc_workerthread.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -646,10 +711,17 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtWidgets/qmessagebox.h \
 		/opt/qt5.7.0/include/QtWidgets/qdialog.h \
 		/opt/qt5.7.0/include/QtGui/QImage \
+		/opt/qt5.7.0/include/QtGui/QPixmap \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
+		/opt/qt5.7.0/include/QtGui/QPainter \
+		/opt/qt5.7.0/include/QtGui/qpainter.h \
+		/opt/qt5.7.0/include/QtGui/qtextoption.h \
+		/opt/qt5.7.0/include/QtGui/qpen.h \
+		/opt/qt5.7.0/include/QtCore/QThread \
+		/opt/qt5.7.0/include/QtCore/qthread.h \
 		v4l2Cap.h \
 		/opt/qt5.7.0/include/QtWidgets/QApplication \
 		/opt/qt5.7.0/include/QtWidgets/qapplication.h \
@@ -762,10 +834,17 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtWidgets/qmessagebox.h \
 		/opt/qt5.7.0/include/QtWidgets/qdialog.h \
 		/opt/qt5.7.0/include/QtGui/QImage \
+		/opt/qt5.7.0/include/QtGui/QPixmap \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
+		/opt/qt5.7.0/include/QtGui/QPainter \
+		/opt/qt5.7.0/include/QtGui/qpainter.h \
+		/opt/qt5.7.0/include/QtGui/qtextoption.h \
+		/opt/qt5.7.0/include/QtGui/qpen.h \
+		/opt/qt5.7.0/include/QtCore/QThread \
+		/opt/qt5.7.0/include/QtCore/qthread.h \
 		v4l2Cap.h \
 		ui_widget.h \
 		/opt/qt5.7.0/include/QtCore/QVariant \
@@ -805,14 +884,71 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtWidgets/qlabel.h \
 		/opt/qt5.7.0/include/QtWidgets/QPushButton \
 		/opt/qt5.7.0/include/QtWidgets/qpushbutton.h \
-		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h
+		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h \
+		workerthread.h \
+		/opt/qt5.7.0/include/QtCore/QObject
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o widget.o widget.cpp
 
 v4l2Cap.o: v4l2Cap.c v4l2Cap.h
 	$(CC) -c $(CFLAGS) $(INCPATH) -o v4l2Cap.o v4l2Cap.c
 
+workerthread.o: workerthread.cpp workerthread.h \
+		/opt/qt5.7.0/include/QtCore/QObject \
+		/opt/qt5.7.0/include/QtCore/qobject.h \
+		/opt/qt5.7.0/include/QtCore/qobjectdefs.h \
+		/opt/qt5.7.0/include/QtCore/qnamespace.h \
+		/opt/qt5.7.0/include/QtCore/qglobal.h \
+		/opt/qt5.7.0/include/QtCore/qconfig.h \
+		/opt/qt5.7.0/include/QtCore/qfeatures.h \
+		/opt/qt5.7.0/include/QtCore/qsystemdetection.h \
+		/opt/qt5.7.0/include/QtCore/qprocessordetection.h \
+		/opt/qt5.7.0/include/QtCore/qcompilerdetection.h \
+		/opt/qt5.7.0/include/QtCore/qtypeinfo.h \
+		/opt/qt5.7.0/include/QtCore/qtypetraits.h \
+		/opt/qt5.7.0/include/QtCore/qisenum.h \
+		/opt/qt5.7.0/include/QtCore/qsysinfo.h \
+		/opt/qt5.7.0/include/QtCore/qlogging.h \
+		/opt/qt5.7.0/include/QtCore/qflags.h \
+		/opt/qt5.7.0/include/QtCore/qatomic.h \
+		/opt/qt5.7.0/include/QtCore/qbasicatomic.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_bootstrap.h \
+		/opt/qt5.7.0/include/QtCore/qgenericatomic.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_cxx11.h \
+		/opt/qt5.7.0/include/QtCore/qatomic_msvc.h \
+		/opt/qt5.7.0/include/QtCore/qglobalstatic.h \
+		/opt/qt5.7.0/include/QtCore/qmutex.h \
+		/opt/qt5.7.0/include/QtCore/qnumeric.h \
+		/opt/qt5.7.0/include/QtCore/qversiontagging.h \
+		/opt/qt5.7.0/include/QtCore/qobjectdefs_impl.h \
+		/opt/qt5.7.0/include/QtCore/qstring.h \
+		/opt/qt5.7.0/include/QtCore/qchar.h \
+		/opt/qt5.7.0/include/QtCore/qbytearray.h \
+		/opt/qt5.7.0/include/QtCore/qrefcount.h \
+		/opt/qt5.7.0/include/QtCore/qarraydata.h \
+		/opt/qt5.7.0/include/QtCore/qstringbuilder.h \
+		/opt/qt5.7.0/include/QtCore/qlist.h \
+		/opt/qt5.7.0/include/QtCore/qalgorithms.h \
+		/opt/qt5.7.0/include/QtCore/qiterator.h \
+		/opt/qt5.7.0/include/QtCore/qhashfunctions.h \
+		/opt/qt5.7.0/include/QtCore/qpair.h \
+		/opt/qt5.7.0/include/QtCore/qbytearraylist.h \
+		/opt/qt5.7.0/include/QtCore/qstringlist.h \
+		/opt/qt5.7.0/include/QtCore/qregexp.h \
+		/opt/qt5.7.0/include/QtCore/qstringmatcher.h \
+		/opt/qt5.7.0/include/QtCore/qcoreevent.h \
+		/opt/qt5.7.0/include/QtCore/qscopedpointer.h \
+		/opt/qt5.7.0/include/QtCore/qmetatype.h \
+		/opt/qt5.7.0/include/QtCore/qvarlengtharray.h \
+		/opt/qt5.7.0/include/QtCore/qcontainerfwd.h \
+		/opt/qt5.7.0/include/QtCore/qobject_impl.h \
+		v4l2Cap.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o workerthread.o workerthread.cpp
+
 moc_widget.o: moc_widget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_widget.o moc_widget.cpp
+
+moc_workerthread.o: moc_workerthread.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_workerthread.o moc_workerthread.cpp
 
 ####### Install
 

@@ -28,8 +28,8 @@ extern "C" {
 
 #define  DEV_NAME  "/dev/video5"
 
-#define  WIDTH    640
-#define  HEIGHT   480
+#define  WIDTH    1280
+#define  HEIGHT   720
 
 typedef unsigned char uchar;
 typedef unsigned int  uint;

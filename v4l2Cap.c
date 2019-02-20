@@ -18,6 +18,7 @@ int epfd;
 uchar *jpg_buf=NULL;   //用于存储临时图像
 uint size_jpg;
 
+
 /*获取当前时间（化为总ms数）*/
 int get_time_now()
 {
@@ -36,44 +37,6 @@ int usTimer(long us)
     return select(0,NULL,NULL,NULL,&timeout);
 }
 
-void CPU_YUYV2RGB(uchar* arrOut, uchar* arrIn)
-{
-    printf("start to yuyv_to_rgb888\n");
-    unsigned char y0, y1, u, v;
-    int r, g, b;
-    int nIndex = 0;
-    for(nIndex = 0; nIndex < (WIDTH * HEIGHT)/2; nIndex++)
-    {
-        y0 = *(arrIn + nIndex*4);
-        u = *(arrIn + nIndex*4 + 1);
-        y1 = *(arrIn + nIndex*4 + 2);
-        v = *(arrIn + nIndex*4 + 3);
-        r = 1.164*(y0-16) + 1.159*(v-128);
-        g = 1.164*(y0-16) - 0.380*(u-128) + 0.813*(v-128);
-        b = 1.164*(y0-16) + 2.018*(u-128);
-        if (r > 255) r = 255;
-        if (g > 255) g = 255;
-        if (b > 255) b = 255;
-        if (r < 0) r = 0;
-        if (g < 0) g = 0;
-        if (b < 0) b = 0;
-        *(arrOut + nIndex*6) = r;
-        *(arrOut + nIndex*6+1) = g;
-        *(arrOut + nIndex*6+2) = b;
-        r = 1.164*(y1-16) + 1.159*(v-128);
-        g = 1.164*(y1-16) - 0.380*(u-128) + 0.813*(v-128);
-        b = 1.164*(y1-16) + 2.018*(u-128);
-        if (r > 255) r = 255;
-        if (g > 255) g = 255;
-        if (b > 255) b = 255;
-        if (r < 0) r = 0;
-        if (g < 0) g = 0;
-        if (b < 0) b = 0;
-        *(arrOut + nIndex*6+3) = r;
-        *(arrOut + nIndex*6+4) = g;
-        *(arrOut + nIndex*6+5) = b;
-    }
-}
 
 
 /*********************************************
@@ -88,7 +51,6 @@ void CPU_YUYV2RGB(uchar* arrOut, uchar* arrIn)
 *********************************************/
 void yuyv_to_rgb888(uchar* yuyv, uchar* rgb888, uint width, uint height)
 {
-    printf("start to yuyv_to_rgb888\n");
         uint i;
         uchar* y0 = yuyv + 0;
         uchar* u0 = yuyv + 1;
@@ -158,7 +120,6 @@ void yuyv_to_rgb888(uchar* yuyv, uchar* rgb888, uint width, uint height)
             g1 = rgb888 + 4;
             b1 = rgb888 + 5;
         }
-        printf("yuyv_to_rgb888 end\n");
 }
 
 int open_cam()
@@ -295,17 +256,14 @@ void start_cap()
 //图像数据处理
 void process_img(void* addr,int length)
 {
-    printf("start to process_img\n");
     //申请格式转换后的数据存储buffer
-    //rgb888_buf = (uchar *)malloc(WIDTH*HEIGHT*3*sizeof(uchar));
     jpg_buf = (uchar *)malloc(length*sizeof(uchar));
 
     size_jpg = length;
     memcpy(jpg_buf,addr,size_jpg);
+
     //YUYV转RGB888
 //    yuyv_to_rgb888((uchar*)addr,rgb888_buf,WIDTH,HEIGHT);
-//    CPU_YUYV2RGB(rgb888_buf,(uchar*)addr);
-    printf("process_img finished\n");
 
 }
 
@@ -325,12 +283,10 @@ void read_frame()
     //开始监听摄像头
     int nfds = epoll_wait(epfd,events,500,-1);
     int i;
-    if(nfds > 0)
-    {
+    if(nfds > 0){
         for(i=0;i<nfds;i++){
             if(events[i].data.fd == cam_fd){
                 if(events[i].events & EPOLLIN){
-                    printf("Image detected!start to read_frame...\n");
                     //读取一帧read_frame()
                     struct v4l2_buffer buf;
 
@@ -341,8 +297,6 @@ void read_frame()
                     process_img(buffers[buf.index].start,buffers[buf.index].length);  //图像处理(格式转换等)//
 
                     ioctl(cam_fd, VIDIOC_QBUF, &buf); //重新入队
-
-                    printf("Complete capture frame\n");
                 }
             }
         }
