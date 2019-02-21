@@ -8,6 +8,7 @@ Widget::Widget(QWidget *parent) :
     ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    qRegisterMetaType<QImage>("QImage");
 
     init();  //初始化
     startObjthread(); //启动多线程
@@ -26,20 +27,22 @@ void Widget::init()
     ui->Bt_CamClose->setEnabled(false);
 
     timer = new QTimer(this);
+    t_show =new QTimer(this);
     index = 0;   //初始化图片保存名下标
 
-    //设置默认显示图片
-    QImage Initimg("./img/fire.jpg");
-    //图片自适应窗口标签大小
-    Initimg.scaled(ui->label_show->size(),Qt::IgnoreAspectRatio);
-    ui->label_show->setScaledContents(true);
-    ui->label_show->setPixmap(QPixmap::fromImage(Initimg));
+//    //设置默认显示图片
+//    QImage Initimg("./img/fire.jpg");
+//    //图片自适应窗口标签大小
+//    Initimg.scaled(ui->label_show->size(),Qt::IgnoreAspectRatio);
+//    ui->label_show->setScaledContents(true);
+//    ui->label_show->setPixmap(QPixmap::fromImage(Initimg));
 
     //槽连接
     connect(ui->Bt_CamOpen,SIGNAL(clicked(bool)),this,SLOT(doProcessOpenCam()));  //打开摄像头
     connect(ui->Bt_SaveImg,SIGNAL(clicked(bool)),this,SLOT(doProcessSaveImg()));  //保存图片
     connect(ui->Bt_CamClose,SIGNAL(clicked(bool)),this,SLOT(doProcessCloseCam())); //关闭摄像头
     connect(timer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
+    connect(t_show,SIGNAL(timeout()),this,SLOT(repaint()));    //定时刷新
 
 //    connect(this,SIGNAL(SigToDisplay()),this,SLOT(doProcessDisplay()));  //发送信号,进行显示
 }
@@ -49,12 +52,12 @@ void Widget::startObjthread()
 {
     workerObj = new workerThread; //创建一个object
     workerObj->moveToThread(&worker);            //将对象移动到线程
-    connect(this,SIGNAL(SigToReadFrame()),workerObj,SLOT(doProcessReadFrame()));  //图像采集
+    connect(this,SIGNAL(SigToReadFrame(QImage)),workerObj,SLOT(doProcessReadFrame(QImage)));  //图像采集
 
     //线程结束后自动销毁
     connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));    //资源回收
 
-    connect(workerObj,SIGNAL(SigToDisplay(unsigned char*,unsigned int)),this,SLOT(doProcessDisplay(unsigned char*,unsigned int)));  //图像显示
+    connect(workerObj,SIGNAL(SigToDisplay(QImage)),this,SLOT(doProcessDisplay(QImage)));  //图像显示
 
     //启动线程
     worker.start();
@@ -81,62 +84,48 @@ void Widget::doProcessOpenCam(){
     //开启视频流
     start_cap();
 
+    //加入camera监听
     epoll_cam();
 
     ui->Bt_CamOpen->setEnabled(false);
-    timer->start(1000.000/100);    //开启定时器,超时发出信号
+    timer->start(1000.000/30);    //开启定时器,超时发出信号
 }
 
 //采集图片
 void Widget::doProcessCapture()
 {
-    emit SigToReadFrame();
+    emit SigToReadFrame(img);
 }
 
 //图像显示
-void Widget::doProcessDisplay(unsigned char *buf,unsigned int len)
+void Widget::doProcessDisplay(QImage img)
 {
-    qDebug() << "start to display\n";
+//    t.start();
+    ui->Bt_SaveImg->setEnabled(true);
+    ui->Bt_CamClose->setEnabled(true);
+
+    p_img = QPixmap::fromImage(img);  //QImage转化为QPixmap
+
+    t_show->start(1000.000/FPS); //开启显示定时器
+
+}
+
+ //QPainter绘制图像
+void Widget::paintEvent(QPaintEvent *)
+{
+    QPainter mypainter(this);
+
+    t.start();
 
     //加锁
     myMutex.lock();
 
-    bool ret = img.loadFromData(buf,len);  //加载图像数据到img
-    if(!ret){
-        qDebug() << "LoadFromData failed!\n";
-    }
-    free(buf);  //释放临时缓存空间
-
-    //图片自适应窗口标签大小
-    img.scaled(ui->label_show->size(),Qt::IgnoreAspectRatio);
-    ui->label_show->setScaledContents(true);
-
-    // 将图片显示到label上
-    ui->label_show->setPixmap(QPixmap::fromImage(img));
-
-    ui->Bt_SaveImg->setEnabled(true);
-    ui->Bt_CamClose->setEnabled(true);
+    mypainter.drawPixmap(0,0,SHOW_WIDTH,SHOW_HEIGHT,p_img);
 
     //解锁
     myMutex.unlock();
-
+    qDebug("绘制图片耗时: %d ms",t.elapsed());  //打印耗时
 }
-
-// //QPainter绘制图像
-//void Widget::paintEvent(QPaintEvent *)
-//{
-//    QPainter mypainter(this);
-//    //加载图像数据到img
-//    img.loadFromData(jpg_buf,size_jpg);
-
-//    //释放临时缓存空间
-//    free(jpg_buf);
-
-//    ui->Bt_SaveImg->setEnabled(true);
-//    ui->Bt_CamClose->setEnabled(true);
-
-//    mypainter.drawPixmap(0,0,390,272,QPixmap::fromImage(img));
-//}
 
 //保存图片
 void Widget::doProcessSaveImg()
@@ -159,7 +148,12 @@ void Widget::doProcessSaveImg()
             break;
         case QMessageBox::Save:
             // Save was clicked
-            img.save(outfile);
+        //加锁
+        myMutex.lock();
+        p_img.save(outfile);
+        //解锁
+        myMutex.unlock();
+
             break;
         default:
             // should never be reached
@@ -172,13 +166,15 @@ void Widget::doProcessSaveImg()
 //关闭摄像头
 void Widget::doProcessCloseCam()
 {
-    timer->stop();   // 停止读取数据。
+    ui->Bt_CamClose->setEnabled(false);
+
+    timer->stop();   // 停止读取数据定时器
+    t_show->stop();  //关闭显示定时器
     stop_cap();
     close_cam();
 
-    ui->label_show->setText("Camera has Closed!");
-    ui->label_show->setAlignment(Qt::AlignCenter);
-
-    ui->Bt_CamClose->setEnabled(false);
+//    ui->label_show->setText("Camera has Closed!");
+//    ui->label_show->setAlignment(Qt::AlignCenter);
     ui->Bt_CamOpen->setEnabled(true);
+
 }

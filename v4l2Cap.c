@@ -327,5 +327,5 @@ void close_cam()
 
     free(buffers);
     close(cam_fd);
-    printf("Camera Capture Done.\n");
+    printf("Camera has closed!\n");
 }

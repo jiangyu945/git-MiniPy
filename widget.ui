@@ -104,26 +104,6 @@ background-color: rgb(255, 255, 0);
     <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QLabel" name="label_show">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>390</width>
-     <height>272</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">font: oblique 16pt &quot;Sans Serif&quot;;
-color: rgb(85, 255, 127);</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

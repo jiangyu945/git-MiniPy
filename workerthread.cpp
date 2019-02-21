@@ -10,14 +10,21 @@ workerThread::workerThread(QObject *parent) : QObject(parent)
 
 }
 
-void workerThread::doProcessReadFrame()
+void workerThread::doProcessReadFrame(QImage img)
 {
+    tt.start();
     Sem.acquire();  //获取二值信号量
+    qDebug("等待耗时: %d ms",tt.elapsed());  //等待耗时
 
-    qDebug() << "Now in workerThread : start to read frame...\n";
     read_frame();  //获取一帧图像
-    qDebug() << "Read finished : emit SigToDisplay()\n";
-    emit SigToDisplay(jpg_buf,size_jpg);  //发送显示信号
+    qDebug("读取耗时: %d ms",tt.elapsed());  //读取耗时
+
+    img.loadFromData(jpg_buf,size_jpg);  //加载图像数据到img
+    qDebug("加载耗时: %d ms",tt.elapsed());  //加载耗时
+
+    free(jpg_buf);  //释放临时缓存空间
+
+    emit SigToDisplay(img);  //发送显示信号
 
     //释放信号量,允许
     Sem.release();
