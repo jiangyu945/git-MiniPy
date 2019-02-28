@@ -11,6 +11,7 @@
 #include <QPainter>
 
 #include <QThread>
+#include <QCloseEvent>
 
 #include <QMutex>       //锁
 #include <QMutexLocker>
@@ -19,9 +20,14 @@
 #include "workerthread.h"
 
 #define    FPS    30         //帧率
-#define  SHOW_WIDTH   370    //屏宽(仅指显示宽度)
-#define  SHOW_HEIGHT  272    //屏高(仅指显示高度)
+#define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
+#define  SHOW_HEIGHT  272    //屏高(仅指可显示高度)
 
+//目标索引框
+#define  OBJ_X     120
+#define  OBJ_Y     61
+#define  OBJ_WIDTH    150
+#define  OBJ_HEIGHT   150
 
 namespace Ui {
 class Widget;
@@ -41,7 +47,7 @@ public slots:
     void doProcessOpenCam();  // 打开摄像头
     void doProcessCapture();  // 采集图片
     void doProcessDisplay(QImage img);  // 显示图片
-    void doProcessSaveImg();  // 保存图片
+    void doProcessViewImg();  // 预览图片
     void doProcessCloseCam(); // 关闭摄像头
 
 protected:
@@ -51,9 +57,9 @@ private:
     Ui::Widget *ui;
 
     QImage img;
-    QPixmap p_img;
-    QTimer *timer;  //采集控制定时器
-    QTimer *t_show; //刷新显示定时器
+    QPixmap p_img,sp_img,pp_img;
+    QTimer *capTimer;  //采集控制定时器
+    QTimer *showTimer; //刷新显示定时器
     int index;      //图片保存名称下标
 
     QThread worker; //次线程

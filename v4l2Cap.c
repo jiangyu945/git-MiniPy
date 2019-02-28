@@ -1,12 +1,21 @@
 #include "v4l2Cap.h"
 
+//摄像头参数设置结构体
+struct v4l2_capability cap;
+struct v4l2_format Format;
+struct v4l2_streamparm Stream_Parm;
+struct v4l2_control ctrl;
+
+
+
+//帧缓冲区
 struct buffer
 {
     void *start;
     size_t length;
 };
 
-struct buffer *buffers; //帧缓冲区
+struct buffer *buffers;
 
 unsigned long n_buffers;
 
@@ -150,52 +159,386 @@ int open_cam()
     return 0;
 }
 
-int set_cap_frame()
-{
-    struct v4l2_format fmt;
-
-    /*设置摄像头捕捉帧格式及分辨率*/
-    fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width       = WIDTH;
-    fmt.fmt.pix.height      = HEIGHT;
-    fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;   //图像采集格式设为YUYV(YUV422)
-
-    if (ioctl(cam_fd, VIDIOC_S_FMT, &fmt) < 0)
+int get_cap_para(){
+/*
+ 函数   ：int ioctl(intfd, int request, struct v4l2_fmtdesc *argp);
+ struct v4l2_fmtdesc
+ {
+    __u32 index;               // 要查询的格式序号，应用程序设置
+    enum v4l2_buf_type type;   // 帧类型，应用程序设置
+    __u32 flags;               // 是否为压缩格式
+    __u8 description[32];      // 格式名称
+    __u32 pixelformat;         // 格式
+    __u32 reserved[4];         // 保留
+ };
+ VIDIOC_ENUM_FMT    //指令含义：获取当前驱动支持的视频格式
+ */
+    printf("【**********************所有支持格式：*****************************】\n");
+    struct v4l2_fmtdesc dis_fmtdesc;
+    dis_fmtdesc.index=0;
+    dis_fmtdesc.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    printf("Support format:\n");
+    while(ioctl(cam_fd,VIDIOC_ENUM_FMT,&dis_fmtdesc)!=-1)
     {
-        perror("set fmt failed!");
-        return -1;
+        printf("\t%d.%s\n",dis_fmtdesc.index+1,dis_fmtdesc.description);
+        dis_fmtdesc.index++;
     }
+    printf("\n");
 
-    printf("fmt.type:%d\n",fmt.type);
+
+    printf("【**********************获取当前格式：*****************************】\n");
+    Format.type= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if(ioctl(cam_fd,VIDIOC_G_FMT,&Format)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>:  %d * %d\n",Format.fmt.pix.width,Format.fmt.pix.height);
     printf("pix.pixelformat:%c%c%c%c\n", \
-            fmt.fmt.pix.pixelformat & 0xFF,\
-            (fmt.fmt.pix.pixelformat >> 8) & 0xFF, \
-            (fmt.fmt.pix.pixelformat >> 16) & 0xFF,\
-            (fmt.fmt.pix.pixelformat >> 24) & 0xFF);
-    printf("pix.width:%d\n",fmt.fmt.pix.width);
-    printf("pix.height:%d\n",fmt.fmt.pix.height);
-    printf("pix.field:%d\n",fmt.fmt.pix.field);
+            Format.fmt.pix.pixelformat & 0xFF,\
+            (Format.fmt.pix.pixelformat >> 8) & 0xFF, \
+            (Format.fmt.pix.pixelformat >> 16) & 0xFF,\
+            (Format.fmt.pix.pixelformat >> 24) & 0xFF);
+    printf("\n");
+
+
+    printf("【***********************获取帧率：******************************】\n");
+    Stream_Parm.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if(ioctl(cam_fd,VIDIOC_G_PARM,&Stream_Parm)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: Frame rate: %u/%u\n",Stream_Parm.parm.capture.timeperframe.numerator,Stream_Parm.parm.capture.timeperframe.denominator);
+    printf("\n");
+
+
+    printf("【**********************获取白平衡：******************************】\n");
+    ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 白平衡值: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("【*********************获取白平衡色温：*****************************】\n");
+    ctrl.id= V4L2_CID_WHITE_BALANCE_TEMPERATURE;  //将白平衡设置为指定的开尔文色温
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 白平衡色温值: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("【**********************获取亮度值：******************************】\n");
+    ctrl.id= V4L2_CID_BRIGHTNESS;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 亮度值: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("【**********************获取对比度：******************************】\n");
+    ctrl.id=V4L2_CID_CONTRAST;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 对比度值: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("【*********************获取颜色饱和度：*****************************】\n");
+    ctrl.id = V4L2_CID_SATURATION;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 饱和度值: %d \n",ctrl.value);
+    printf("\n");
+
+    printf("【***********************获取色度：******************************】\n");
+    ctrl.id = V4L2_CID_HUE;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 色度: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("【***********************获取锐度：******************************】\n");
+    ctrl.id = V4L2_CID_SHARPNESS;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 锐度: %d \n",ctrl.value);
+    printf("\n");
+
+    printf("【**********************获取背光补偿：*****************************】\n");
+    ctrl.id = V4L2_CID_BACKLIGHT_COMPENSATION;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 背光补偿: %d \n",ctrl.value);
+    printf("\n");
+
+    printf("【**********************获取伽玛值：******************************】\n");
+    ctrl.id = V4L2_CID_GAMMA;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 伽玛值: %d \n",ctrl.value);
+    printf("\n");
+
+#if 0
+//以下参数在该型号（双目122）摄像头，无法调节
+    printf("***************************获取增益值************************\n");
+    ctrl.id= V4L2_CID_GAIN;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 增益: %d \n",ctrl.value);
+    printf("\n");
+
+
+    printf("*************************获取曝光值*****************************\n");
+    //(注意：测试发现，在Linux下，V4L2_EXPOSURE_ATUO并不被Firmware认可，要设置自动曝光，需要设置为：V4L2_EXPOSURE_APERTURE_PRIORITY)
+    ctrl.id= V4L2_CID_EXPOSURE_AUTO ;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">: 曝光值: %d\n",ctrl.value);
+    printf("\n");
+
+    printf("*************************获取曝光绝对值****************************\n"); //一般设置曝光是设置它
+    struct v4l2_control ctrl;
+    ctrl.id=V4L2_CID_EXPOSURE_ABSOLUTE;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">: 曝光绝对值: %d\n",ctrl.value);
+    printf("\n");
+
+    printf("***************************获取曝光优先级************************\n");
+    struct v4l2_control ctrl;
+    ctrl.id= V4L2_CID_EXPOSURE_PRIORITY;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">: 曝光优先级: %d \n",ctrl.value);
+    printf("\n");
+#endif
 
     return 0;
+
 }
 
-
-//获取帧率
-void get_fps()
+void set_cap_para()
 {
-    struct v4l2_streamparm *parm;
-    parm = (struct v4l2_streamparm *)calloc(1, sizeof(struct v4l2_streamparm));
-    memset(parm, 0, sizeof(struct v4l2_streamparm));
-    parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-    int rel = ioctl(cam_fd,VIDIOC_G_PARM, parm);
-    if(rel == 0)
+    printf("【*********************设置分辨率、格式：****************************】\n");
+    memset(&Format,0,sizeof(struct v4l2_format));
+    Format.type= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    Format.fmt.pix.width =  WIDTH;
+    Format.fmt.pix.height = HEIGHT;
+    Format.fmt.pix.pixelformat= V4L2_PIX_FMT_MJPEG;
+    Format.fmt.pix.field = (enum v4l2_field)1;
+    if(ioctl(cam_fd,VIDIOC_S_FMT,&Format)==-1)
     {
-        printf("Frame rate:  %u/%u\n",parm->parm.capture.timeperframe.denominator,parm->parm.capture.timeperframe.numerator);
+        perror("ioctl");
+        exit(EXIT_FAILURE);
     }
-    free(parm);
+    printf("\n");
+
+    printf("【***********************设置帧率：******************************】\n");
+    Stream_Parm.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    Stream_Parm.parm.capture.timeperframe.denominator =30;
+    Stream_Parm.parm.capture.timeperframe.numerator =1;
+    if(ioctl(cam_fd,VIDIOC_S_PARM,&Stream_Parm)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【*********************设置白平衡色温：*****************************】\n");
+    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+    ctrl.value = 5500;
+     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【***********************设置亮度：******************************】\n");
+    ctrl.id= V4L2_CID_BRIGHTNESS;
+    ctrl.value = 0;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【**********************设置对比度：******************************】\n");
+    ctrl.id = V4L2_CID_CONTRAST;
+    ctrl.value= 32;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【**********************设置饱和度：******************************】\n");
+    ctrl.id = V4L2_CID_SATURATION;
+    ctrl.value= 50;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【***********************设置色度：******************************】\n");
+    ctrl.id = V4L2_CID_HUE;
+    ctrl.value = 0;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【***********************设置锐度：******************************】\n");
+    ctrl.id = V4L2_CID_SHARPNESS;
+    ctrl.value = 2;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+
+    printf("【**********************设置背光补偿：*****************************】\n");
+    ctrl.id = V4L2_CID_BACKLIGHT_COMPENSATION;
+    ctrl.value = 1;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【**********************设置伽玛值：******************************】\n");
+    ctrl.id = V4L2_CID_GAMMA;
+    ctrl.value = 100;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+
+
+    printf("【******************验证设置**********************】\n");
+    printf("【******************验证设置**********************】\n");
+
+
+
+
+#if 0
+
+    /***********设置手动曝光***************************/
+    printf("【**********设置手动曝光**************************】\n");
+    ctrl.id= V4L2_CID_EXPOSURE_AUTO;
+    ctrl.value=V4L2_EXPOSURE_MANUAL;
+    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    /***********设置曝光绝对值***************************/
+    printf("【***********设置曝光绝对值************************】\n");
+    ctrl.id= V4L2_CID_EXPOSURE_ABSOLUTE;
+    ctrl.value= value;  //val需填写
+    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+     /***********设置对焦模式***************************/
+    printf("【***********设置对焦模式***************************】\n");
+    printf("1> 关闭自动对焦\n");
+    ctrl.id= V4L2_CID_FOCUS_AUTO;
+    ctrl.value= 0;
+    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("2> 设置焦点值\n");
+    ctrl.id= V4L2_CID_FOCUS_ABSOLUTE;
+    ctrl.value= val;  //val需填写
+    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+
+    // /***************设置增益***************************/
+    // printf("【***************设置增益***************************】\n");
+    // ctrl.id=V4L2_CID_GAIN;
+    // if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    // {
+    //     perror("ioctl");
+    //     exit(EXIT_FAILURE);
+    // }
+    // printf("\n");
+
+
+
+    printf("**********************All Set Finished!!!*********************\n");
+
+#endif
 }
+
 
 //初始化内存映射
 void init_mmap()

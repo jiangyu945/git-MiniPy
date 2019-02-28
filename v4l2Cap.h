@@ -39,8 +39,8 @@ int get_time_now();  //获取当前时间
 int usTimer(long);   //us定时器
 void yuyv_to_rgb888(uchar*,uchar*,uint,uint);  //yuyv转rgb888
 int open_cam();    //打开摄像头
-int set_cap_frame(); //设置帧格式
-void get_fps();   //获取帧率
+int get_cap_para(); //获取摄像头参数
+void set_cap_para(); //设置摄像头参数
 void init_mmap(); //初始化内存映射
 void start_cap(); //使能视频流
 void epoll_cam(); //摄像头加入监听池

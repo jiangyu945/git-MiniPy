@@ -62,7 +62,7 @@ background-color: rgb(255, 255, 0);
 </string>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>View</string>
    </property>
   </widget>
   <widget class="Line" name="line">

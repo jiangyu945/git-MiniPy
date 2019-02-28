@@ -526,6 +526,8 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
+		/opt/qt5.7.0/include/QtCore/QTime \
+		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
 		/opt/qt5.7.0/include/QtGui/QPainter \
 		/opt/qt5.7.0/include/QtGui/qpainter.h \
@@ -533,7 +535,13 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtCore/QMutex \
+		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
+		workerthread.h \
+		/opt/qt5.7.0/include/QtCore/QObject \
+		/opt/qt5.7.0/include/QtCore/QSemaphore \
+		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
 		widget.h \
 		/opt/qt5.7.0/bin/moc
 	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include widget.h -o moc_widget.cpp
@@ -586,6 +594,48 @@ moc_workerthread.cpp: /opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/qvarlengtharray.h \
 		/opt/qt5.7.0/include/QtCore/qcontainerfwd.h \
 		/opt/qt5.7.0/include/QtCore/qobject_impl.h \
+		/opt/qt5.7.0/include/QtCore/QDebug \
+		/opt/qt5.7.0/include/QtCore/qdebug.h \
+		/opt/qt5.7.0/include/QtCore/qhash.h \
+		/opt/qt5.7.0/include/QtCore/qmap.h \
+		/opt/qt5.7.0/include/QtCore/qtextstream.h \
+		/opt/qt5.7.0/include/QtCore/qiodevice.h \
+		/opt/qt5.7.0/include/QtCore/qlocale.h \
+		/opt/qt5.7.0/include/QtCore/qvariant.h \
+		/opt/qt5.7.0/include/QtCore/qshareddata.h \
+		/opt/qt5.7.0/include/QtCore/qvector.h \
+		/opt/qt5.7.0/include/QtCore/qpoint.h \
+		/opt/qt5.7.0/include/QtCore/qset.h \
+		/opt/qt5.7.0/include/QtCore/qcontiguouscache.h \
+		/opt/qt5.7.0/include/QtCore/qsharedpointer.h \
+		/opt/qt5.7.0/include/QtCore/qsharedpointer_impl.h \
+		/opt/qt5.7.0/include/QtCore/QSemaphore \
+		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
+		/opt/qt5.7.0/include/QtCore/QMutex \
+		/opt/qt5.7.0/include/QtCore/QMutexLocker \
+		/opt/qt5.7.0/include/QtGui/QImage \
+		/opt/qt5.7.0/include/QtGui/qimage.h \
+		/opt/qt5.7.0/include/QtGui/qcolor.h \
+		/opt/qt5.7.0/include/QtGui/qrgb.h \
+		/opt/qt5.7.0/include/QtGui/qrgba64.h \
+		/opt/qt5.7.0/include/QtGui/qpaintdevice.h \
+		/opt/qt5.7.0/include/QtGui/qwindowdefs.h \
+		/opt/qt5.7.0/include/QtGui/qwindowdefs_win.h \
+		/opt/qt5.7.0/include/QtCore/qrect.h \
+		/opt/qt5.7.0/include/QtCore/qmargins.h \
+		/opt/qt5.7.0/include/QtCore/qsize.h \
+		/opt/qt5.7.0/include/QtGui/qpixelformat.h \
+		/opt/qt5.7.0/include/QtGui/qtransform.h \
+		/opt/qt5.7.0/include/QtGui/qmatrix.h \
+		/opt/qt5.7.0/include/QtGui/qpolygon.h \
+		/opt/qt5.7.0/include/QtGui/qregion.h \
+		/opt/qt5.7.0/include/QtCore/qdatastream.h \
+		/opt/qt5.7.0/include/QtCore/qline.h \
+		/opt/qt5.7.0/include/QtGui/qpainterpath.h \
+		/opt/qt5.7.0/include/QtGui/QPixmap \
+		/opt/qt5.7.0/include/QtGui/qpixmap.h \
+		/opt/qt5.7.0/include/QtCore/QTime \
+		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		workerthread.h \
 		/opt/qt5.7.0/bin/moc
 	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include workerthread.h -o moc_workerthread.cpp
@@ -715,6 +765,8 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
+		/opt/qt5.7.0/include/QtCore/QTime \
+		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
 		/opt/qt5.7.0/include/QtGui/QPainter \
 		/opt/qt5.7.0/include/QtGui/qpainter.h \
@@ -722,14 +774,22 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtCore/QMutex \
+		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
+		workerthread.h \
+		/opt/qt5.7.0/include/QtCore/QObject \
+		/opt/qt5.7.0/include/QtCore/QSemaphore \
+		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
 		/opt/qt5.7.0/include/QtWidgets/QApplication \
 		/opt/qt5.7.0/include/QtWidgets/qapplication.h \
 		/opt/qt5.7.0/include/QtCore/qcoreapplication.h \
 		/opt/qt5.7.0/include/QtCore/qeventloop.h \
 		/opt/qt5.7.0/include/QtWidgets/qdesktopwidget.h \
 		/opt/qt5.7.0/include/QtGui/qguiapplication.h \
-		/opt/qt5.7.0/include/QtGui/qinputmethod.h
+		/opt/qt5.7.0/include/QtGui/qinputmethod.h \
+		/opt/qt5.7.0/include/QtCore/QTextCodec \
+		/opt/qt5.7.0/include/QtCore/qtextcodec.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 widget.o: widget.cpp widget.h \
@@ -838,6 +898,8 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtCore/QTimer \
 		/opt/qt5.7.0/include/QtCore/qtimer.h \
 		/opt/qt5.7.0/include/QtCore/qbasictimer.h \
+		/opt/qt5.7.0/include/QtCore/QTime \
+		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		/opt/qt5.7.0/include/QtCore/QDebug \
 		/opt/qt5.7.0/include/QtGui/QPainter \
 		/opt/qt5.7.0/include/QtGui/qpainter.h \
@@ -845,7 +907,13 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtCore/QMutex \
+		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
+		workerthread.h \
+		/opt/qt5.7.0/include/QtCore/QObject \
+		/opt/qt5.7.0/include/QtCore/QSemaphore \
+		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
 		ui_widget.h \
 		/opt/qt5.7.0/include/QtCore/QVariant \
 		/opt/qt5.7.0/include/QtWidgets/QAction \
@@ -880,13 +948,9 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtWidgets/qtabbar.h \
 		/opt/qt5.7.0/include/QtWidgets/qtabwidget.h \
 		/opt/qt5.7.0/include/QtWidgets/qrubberband.h \
-		/opt/qt5.7.0/include/QtWidgets/QLabel \
-		/opt/qt5.7.0/include/QtWidgets/qlabel.h \
 		/opt/qt5.7.0/include/QtWidgets/QPushButton \
 		/opt/qt5.7.0/include/QtWidgets/qpushbutton.h \
-		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h \
-		workerthread.h \
-		/opt/qt5.7.0/include/QtCore/QObject
+		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o widget.o widget.cpp
 
 v4l2Cap.o: v4l2Cap.c v4l2Cap.h
@@ -941,6 +1005,48 @@ workerthread.o: workerthread.cpp workerthread.h \
 		/opt/qt5.7.0/include/QtCore/qvarlengtharray.h \
 		/opt/qt5.7.0/include/QtCore/qcontainerfwd.h \
 		/opt/qt5.7.0/include/QtCore/qobject_impl.h \
+		/opt/qt5.7.0/include/QtCore/QDebug \
+		/opt/qt5.7.0/include/QtCore/qdebug.h \
+		/opt/qt5.7.0/include/QtCore/qhash.h \
+		/opt/qt5.7.0/include/QtCore/qmap.h \
+		/opt/qt5.7.0/include/QtCore/qtextstream.h \
+		/opt/qt5.7.0/include/QtCore/qiodevice.h \
+		/opt/qt5.7.0/include/QtCore/qlocale.h \
+		/opt/qt5.7.0/include/QtCore/qvariant.h \
+		/opt/qt5.7.0/include/QtCore/qshareddata.h \
+		/opt/qt5.7.0/include/QtCore/qvector.h \
+		/opt/qt5.7.0/include/QtCore/qpoint.h \
+		/opt/qt5.7.0/include/QtCore/qset.h \
+		/opt/qt5.7.0/include/QtCore/qcontiguouscache.h \
+		/opt/qt5.7.0/include/QtCore/qsharedpointer.h \
+		/opt/qt5.7.0/include/QtCore/qsharedpointer_impl.h \
+		/opt/qt5.7.0/include/QtCore/QSemaphore \
+		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
+		/opt/qt5.7.0/include/QtCore/QMutex \
+		/opt/qt5.7.0/include/QtCore/QMutexLocker \
+		/opt/qt5.7.0/include/QtGui/QImage \
+		/opt/qt5.7.0/include/QtGui/qimage.h \
+		/opt/qt5.7.0/include/QtGui/qcolor.h \
+		/opt/qt5.7.0/include/QtGui/qrgb.h \
+		/opt/qt5.7.0/include/QtGui/qrgba64.h \
+		/opt/qt5.7.0/include/QtGui/qpaintdevice.h \
+		/opt/qt5.7.0/include/QtGui/qwindowdefs.h \
+		/opt/qt5.7.0/include/QtGui/qwindowdefs_win.h \
+		/opt/qt5.7.0/include/QtCore/qrect.h \
+		/opt/qt5.7.0/include/QtCore/qmargins.h \
+		/opt/qt5.7.0/include/QtCore/qsize.h \
+		/opt/qt5.7.0/include/QtGui/qpixelformat.h \
+		/opt/qt5.7.0/include/QtGui/qtransform.h \
+		/opt/qt5.7.0/include/QtGui/qmatrix.h \
+		/opt/qt5.7.0/include/QtGui/qpolygon.h \
+		/opt/qt5.7.0/include/QtGui/qregion.h \
+		/opt/qt5.7.0/include/QtCore/qdatastream.h \
+		/opt/qt5.7.0/include/QtCore/qline.h \
+		/opt/qt5.7.0/include/QtGui/qpainterpath.h \
+		/opt/qt5.7.0/include/QtGui/QPixmap \
+		/opt/qt5.7.0/include/QtGui/qpixmap.h \
+		/opt/qt5.7.0/include/QtCore/QTime \
+		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		v4l2Cap.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o workerthread.o workerthread.cpp
 

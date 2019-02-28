@@ -12,15 +12,15 @@ workerThread::workerThread(QObject *parent) : QObject(parent)
 
 void workerThread::doProcessReadFrame(QImage img)
 {
-    tt.start();
+//    tt.start();
     Sem.acquire();  //获取二值信号量
-    qDebug("等待耗时: %d ms",tt.elapsed());  //等待耗时
+//    qDebug("等待耗时: %d ms",tt.elapsed());  //等待耗时
 
     read_frame();  //获取一帧图像
-    qDebug("读取耗时: %d ms",tt.elapsed());  //读取耗时
+//    qDebug("读取耗时: %d ms",tt.elapsed());  //读取耗时
 
     img.loadFromData(jpg_buf,size_jpg);  //加载图像数据到img
-    qDebug("加载耗时: %d ms",tt.elapsed());  //加载耗时
+//    qDebug("加载耗时: %d ms",tt.elapsed());  //加载耗时
 
     free(jpg_buf);  //释放临时缓存空间
 
