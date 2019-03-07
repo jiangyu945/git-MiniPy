@@ -21,13 +21,17 @@
 
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
-#define  SHOW_HEIGHT  272    //屏高(仅指可显示高度)
+#define  SHOW_HEIGHT  240    //屏高(仅指可显示高度)
+
+//画布起始点
+#define  PIX_X   0
+#define  PIX_Y   32
 
 //目标索引框
-#define  OBJ_X     120
-#define  OBJ_Y     61
-#define  OBJ_WIDTH    150
-#define  OBJ_HEIGHT   150
+#define  OBJ_WIDTH    180
+#define  OBJ_HEIGHT   180
+#define  OBJ_X     105
+#define  OBJ_Y     62
 
 namespace Ui {
 class Widget;
@@ -48,7 +52,10 @@ public slots:
     void doProcessCapture();  // 采集图片
     void doProcessDisplay(QImage img);  // 显示图片
     void doProcessViewImg();  // 预览图片
+    void doProcessSelectWB(); // 白平衡模式选择
+
     void doProcessCloseCam(); // 关闭摄像头
+
 
 protected:
     virtual void paintEvent(QPaintEvent*);

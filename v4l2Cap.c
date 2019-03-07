@@ -539,6 +539,20 @@ void set_cap_para()
 #endif
 }
 
+//设置白平衡色温
+void set_cap_wb(int value)
+{
+    printf("【*********************设置白平衡色温：*****************************】\n");
+    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+    ctrl.value = value;
+     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+}
+
 
 //初始化内存映射
 void init_mmap()

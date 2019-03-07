@@ -39,6 +39,8 @@ void Widget::init()
     connect(ui->Bt_CamClose,SIGNAL(clicked(bool)),this,SLOT(doProcessCloseCam())); //关闭摄像头,退出程序
     connect(capTimer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
+
+    connect(ui->Bt_SWB,SIGNAL(clicked(bool)),this,SLOT(doProcessSelectWB()));   //选择白平衡模式
 }
 
 //开启线程
@@ -67,14 +69,17 @@ void Widget::doProcessOpenCam(){
     if(ret == -1){
         QMessageBox msg;
         msg.about(NULL,"Error","Open Camera Failed!");
+        return;
     }
 
-    //获取摄像头参数
-    get_cap_para();
     //设置摄像头参数
     set_cap_para();
-    //验证设置
-    get_cap_para();
+
+    //显示初始白平衡模式
+    ui->lineEdit_wbShow->setText("Now WB Mode : Sunny"); //设置文本内容
+    ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
+    //获取摄像头参数
+//    get_cap_para();
     //内存映射初始化
     init_mmap();
     //开启视频流
@@ -84,6 +89,73 @@ void Widget::doProcessOpenCam(){
 
     ui->Bt_CamOpen->setEnabled(false);
     capTimer->start(1000.000/30);    //定时发送采集请求
+}
+
+//白平衡模式设置
+void Widget::doProcessSelectWB()
+{
+
+    QMessageBox msgbox(QMessageBox::NoIcon, NULL,"Please select white balance mode : ",
+                       QMessageBox::Yes | QMessageBox::YesAll | QMessageBox::Save |
+                       QMessageBox::Ok | QMessageBox::Open | QMessageBox::No |
+                       QMessageBox::Cancel);
+    msgbox.setButtonText(QMessageBox::Yes,"Morn1h");      //日出一小时  3500K
+    msgbox.setButtonText(QMessageBox::YesAll,"Morn2h");   //日出两小时  4700K
+    msgbox.setButtonText(QMessageBox::Save,"Cloudy");    //阴天       7000K
+    msgbox.setButtonText(QMessageBox::Ok,"Sunny");       //正午阳光    6000K
+    msgbox.setButtonText(QMessageBox::Open,"Tungsten");  //钨丝灯      3000K
+    msgbox.setButtonText(QMessageBox::No,"Fluorescent"); //日光灯      6000K
+    msgbox.setButtonText(QMessageBox::Cancel,"Sunset");  //日落        2500K
+    msgbox.setDefaultButton(QMessageBox::Ok);
+    switch(msgbox.exec()){
+        case QMessageBox::Yes:
+            set_cap_wb(3500);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Morn1h"); //设置文本内容
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
+            break;
+
+        case QMessageBox::YesAll:
+            set_cap_wb(4700);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Morn2h");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        case QMessageBox::Save:
+            set_cap_wb(7000);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Cloudy");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        case QMessageBox::Ok:
+            set_cap_wb(6000);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Sunny");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        case QMessageBox::Open:
+            set_cap_wb(3000);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Tungsten");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        case QMessageBox::No:
+            set_cap_wb(6000);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Fluorescent");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        case QMessageBox::Cancel:
+            set_cap_wb(2500);
+            ui->lineEdit_wbShow->setText("Now WB Mode : Sunset");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            break;
+
+        default:
+            break;
+    }
+
+    //获取摄像头参数
+    get_cap_para();
 }
 
 //采集图片
@@ -110,7 +182,7 @@ void Widget::paintEvent(QPaintEvent *)
 
     QMutexLocker locker(&myMutex); //加锁,主要目的是锁住全局的p_img,防止绘制期间被篡改
     //绘制图形
-    mypainter.drawPixmap(0,0,SHOW_WIDTH,SHOW_HEIGHT,p_img);
+    mypainter.drawPixmap(PIX_X,PIX_Y,SHOW_WIDTH,SHOW_HEIGHT,p_img);
     //绘制图像拍摄指引框
     QPen pen(QPen(Qt::green,2,Qt::DashDotDotLine)); //设置画笔形式
     mypainter.setPen(pen);
@@ -121,9 +193,18 @@ void Widget::paintEvent(QPaintEvent *)
 void Widget::doProcessViewImg()
 {
     //格式化图片保存名称
-    index++;
-    char outfile[50];
-    sprintf(outfile, "./cap_test%d.jpg", index);
+//    index++;
+//    char outfile[50];
+//    sprintf(outfile, "/app/cap_test%d.jpg", index);
+
+    //图片名加入时间戳
+    struct tm *ptr;
+    time_t t;
+    char outfile[51];
+    time(&t);
+    ptr = localtime(&t);
+    strftime(outfile,sizeof(outfile),"/app/Greein_%Y%m%d_%H%M%S",ptr);
+    strcat(outfile,".jpg");
 
     //预览对话框
     QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No);

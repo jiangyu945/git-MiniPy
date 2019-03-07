@@ -535,6 +535,7 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtGui/QCloseEvent \
 		/opt/qt5.7.0/include/QtCore/QMutex \
 		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
@@ -774,6 +775,7 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtGui/QCloseEvent \
 		/opt/qt5.7.0/include/QtCore/QMutex \
 		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
@@ -907,6 +909,7 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtGui/qpen.h \
 		/opt/qt5.7.0/include/QtCore/QThread \
 		/opt/qt5.7.0/include/QtCore/qthread.h \
+		/opt/qt5.7.0/include/QtGui/QCloseEvent \
 		/opt/qt5.7.0/include/QtCore/QMutex \
 		/opt/qt5.7.0/include/QtCore/QMutexLocker \
 		v4l2Cap.h \
