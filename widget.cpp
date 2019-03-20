@@ -41,6 +41,7 @@ void Widget::init()
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
 
     connect(ui->Bt_SWB,SIGNAL(clicked(bool)),this,SLOT(doProcessSelectWB()));   //选择白平衡模式
+    connect(ui->Bt_remove,SIGNAL(clicked(bool)),this,SLOT(doProcessRemoveTfcard()));  //移除TF卡
 }
 
 //开启线程
@@ -200,10 +201,10 @@ void Widget::doProcessViewImg()
     //图片名加入时间戳
     struct tm *ptr;
     time_t t;
-    char outfile[51];
+    char outfile[100];
     time(&t);
     ptr = localtime(&t);
-    strftime(outfile,sizeof(outfile),"/app/Greein_%Y%m%d_%H%M%S",ptr);
+    strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
     strcat(outfile,".jpg");
 
     //预览对话框
@@ -214,16 +215,39 @@ void Widget::doProcessViewImg()
     myMutex.lock();  //加锁
     sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
                         OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
-    myMutex.unlock();  //解锁
+
     pp_img = sp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
     msgbox.setIconPixmap(pp_img);    //将图片显示在对话框中
+
+    myMutex.unlock();  //解锁
 
     //判断用户操作
     if(msgbox.exec() == QMessageBox::Yes)
     {
         pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-        pp_img.save(outfile);   //保存图片
+        bool ret = pp_img.save(outfile);   //保存图片
+        if(!ret){
+            ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+        }
+        else{
+            ui->lineEdit_wbShow->setText("Save succeed!");
+            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+        }
     }
+
+
+}
+
+//移除TF卡
+void Widget::doProcessRemoveTfcard()
+{
+    int ret = system("umount /media/mmcblk1p1");
+    if(ret != -1){
+        ui->lineEdit_wbShow->setText("Remove TF Card succeed!");
+        ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+    }
+
 }
 
 //关闭摄像头

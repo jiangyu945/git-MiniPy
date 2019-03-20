@@ -34,6 +34,7 @@ public:
     QFrame *line_4;
     QLineEdit *lineEdit_wbShow;
     QFrame *line_5;
+    QPushButton *Bt_remove;
 
     void setupUi(QWidget *Widget)
     {
@@ -84,7 +85,7 @@ public:
         line_4->setFrameShadow(QFrame::Sunken);
         lineEdit_wbShow = new QLineEdit(Widget);
         lineEdit_wbShow->setObjectName(QStringLiteral("lineEdit_wbShow"));
-        lineEdit_wbShow->setGeometry(QRect(0, 0, 390, 28));
+        lineEdit_wbShow->setGeometry(QRect(0, 0, 310, 28));
         lineEdit_wbShow->setStyleSheet(QLatin1String("font: oblique 12pt \"Sans Serif\";\n"
 "background-color: rgb(187, 255, 235);\n"
 "color: rgb(29, 127, 255);"));
@@ -93,6 +94,11 @@ public:
         line_5->setGeometry(QRect(0, 28, 390, 4));
         line_5->setFrameShape(QFrame::HLine);
         line_5->setFrameShadow(QFrame::Sunken);
+        Bt_remove = new QPushButton(Widget);
+        Bt_remove->setObjectName(QStringLiteral("Bt_remove"));
+        Bt_remove->setGeometry(QRect(310, 0, 80, 28));
+        Bt_remove->setStyleSheet(QLatin1String("background-color: rgb(255, 0, 0);\n"
+"font: 12pt \"Sans Serif\";"));
 
         retranslateUi(Widget);
 
@@ -107,6 +113,7 @@ public:
         Bt_SaveImg->setText(QApplication::translate("Widget", "View", 0));
         Bt_SWB->setText(QApplication::translate("Widget", "SWB", 0));
         lineEdit_wbShow->setText(QApplication::translate("Widget", "WB Mode Tip", 0));
+        Bt_remove->setText(QApplication::translate("Widget", "Remove", 0));
     } // retranslateUi
 
 };

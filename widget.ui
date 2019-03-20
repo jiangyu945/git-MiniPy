@@ -140,7 +140,7 @@ background-color: rgb(0, 170, 127);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>390</width>
+     <width>310</width>
      <height>28</height>
     </rect>
    </property>
@@ -164,6 +164,23 @@ color: rgb(29, 127, 255);</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="Bt_remove">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>0</y>
+     <width>80</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(255, 0, 0);
+font: 12pt &quot;Sans Serif&quot;;</string>
+   </property>
+   <property name="text">
+    <string>Remove</string>
    </property>
   </widget>
  </widget>

@@ -53,6 +53,7 @@ public slots:
     void doProcessDisplay(QImage img);  // 显示图片
     void doProcessViewImg();  // 预览图片
     void doProcessSelectWB(); // 白平衡模式选择
+    void doProcessRemoveTfcard();  //移除TF卡
 
     void doProcessCloseCam(); // 关闭摄像头
 
