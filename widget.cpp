@@ -1,5 +1,6 @@
 #include "widget.h"
 #include "ui_widget.h"
+#include "opencv_measure.h"
 
 QMutex myMutex;
 
@@ -10,8 +11,15 @@ Widget::Widget(QWidget *parent) :
     ui->setupUi(this);
     qRegisterMetaType<QImage>("QImage");
 
+    mpShadeWindow1 = new QWidget(this); //遮罩窗口1
+    mpShadeWindow2 = new QWidget(this); //遮罩窗口2
+    mpShadeWindow3 = new QWidget(this); //遮罩窗口3
+    mpShadeWindow4 = new QWidget(this); //遮罩窗口4
     init();  //初始化
     startObjthread(); //启动多线程
+
+    //显示当前时间,确保网络时间获取成功
+    showTime();
 }
 
 Widget::~Widget()
@@ -26,8 +34,12 @@ Widget::~Widget()
 /*=======================================Functions====================================*/
 void Widget::init()
 {
-    ui->Bt_SaveImg->setEnabled(false);  //按钮状态初始化
-    ui->Bt_CamClose->setEnabled(false);
+    //按钮状态初始化
+    ui->Bt_CamOpen->setEnabled(true);    //打开
+    ui->Bt_SWB->setEnabled(false);       //WB选择
+    ui->Bt_ViewImg->setEnabled(false);   //预览
+    ui->Bt_CamClose->setEnabled(false);  //关闭
+    ui->Bt_remove->setEnabled(false);    //移除TF卡
 
     capTimer = new QTimer(this);
     showTimer =new QTimer(this);
@@ -35,7 +47,7 @@ void Widget::init()
 
     //槽连接
     connect(ui->Bt_CamOpen,SIGNAL(clicked(bool)),this,SLOT(doProcessOpenCam()));  //打开摄像头
-    connect(ui->Bt_SaveImg,SIGNAL(clicked(bool)),this,SLOT(doProcessViewImg()));  //预览图片
+    connect(ui->Bt_ViewImg,SIGNAL(clicked(bool)),this,SLOT(doProcessViewImg()));  //预览图片
     connect(ui->Bt_CamClose,SIGNAL(clicked(bool)),this,SLOT(doProcessCloseCam())); //关闭摄像头,退出程序
     connect(capTimer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
@@ -60,6 +72,95 @@ void Widget::startObjthread()
     worker.start();
 }
 
+//显示当前时间
+void Widget::showTime()
+{
+    struct tm *ptr;
+    time_t t;
+    char nowtime[20];
+    time(&t);
+    ptr = localtime(&t);
+    strftime(nowtime,sizeof(nowtime),"%Y/%m/%d_%H:%M:%S",ptr);
+    nowtime[sizeof(nowtime)-1] = '\0';
+
+    ui->lineEdit_wbShow->setText(nowtime); //设置文本内容
+    ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
+}
+
+//Mat转QImage
+QImage cvMat2QImage(const cv::Mat& mat)
+{
+    // 8-bits unsigned, NO. OF CHANNELS = 1
+    if(mat.type() == CV_8UC1)
+    {
+        QImage image(mat.cols, mat.rows, QImage::Format_Indexed8);
+        // Set the color table (used to translate colour indexes to qRgb values)
+        image.setColorCount(256);
+        for(int i = 0; i < 256; i++)
+        {
+            image.setColor(i, qRgb(i, i, i));
+        }
+        // Copy input Mat
+        uchar *pSrc = mat.data;
+        for(int row = 0; row < mat.rows; row ++)
+        {
+            uchar *pDest = image.scanLine(row);
+            memcpy(pDest, pSrc, mat.cols);
+            pSrc += mat.step;
+        }
+        return image;
+    }
+    // 8-bits unsigned, NO. OF CHANNELS = 3
+    else if(mat.type() == CV_8UC3)
+    {
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_RGB888);
+        return image.rgbSwapped();
+    }
+    else if(mat.type() == CV_8UC4)
+    {
+        qDebug() << "CV_8UC4";
+        // Copy input Mat
+        const uchar *pSrc = (const uchar*)mat.data;
+        // Create QImage with same dimensions as input Mat
+        QImage image(pSrc, mat.cols, mat.rows, mat.step, QImage::Format_ARGB32);
+        return image.copy();
+    }
+    else
+    {
+        qDebug() << "ERROR: Mat could not be converted to QImage.";
+        return QImage();
+    }
+}
+
+//QImage转Mat
+cv::Mat QImage2cvMat(QImage image)
+{
+    cv::Mat mat;
+    switch(image.format())
+    {
+    case QImage::Format_ARGB32:
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32_Premultiplied:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC4, (void*)image.constBits(), image.bytesPerLine());
+        break;
+    case QImage::Format_RGB888:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC3, (void*)image.constBits(), image.bytesPerLine());
+        cv::cvtColor(mat, mat, CV_BGR2RGB);
+        break;
+    case QImage::Format_Indexed8:
+        mat = cv::Mat(image.height(), image.width(), CV_8UC1, (void*)image.constBits(), image.bytesPerLine());
+        break;
+    default:
+        break;
+    }
+    return mat;
+}
+
+
+
 
 /*========================================SLOT=========================================*/
 //打开摄像头
@@ -80,7 +181,7 @@ void Widget::doProcessOpenCam(){
     ui->lineEdit_wbShow->setText("Now WB Mode : Sunny"); //设置文本内容
     ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
     //获取摄像头参数
-//    get_cap_para();
+    get_cap_para();
     //内存映射初始化
     init_mmap();
     //开启视频流
@@ -89,6 +190,9 @@ void Widget::doProcessOpenCam(){
     epoll_cam();
 
     ui->Bt_CamOpen->setEnabled(false);
+    ui->Bt_SWB->setEnabled(true);
+    ui->Bt_remove->setEnabled(true);
+
     capTimer->start(1000.000/30);    //定时发送采集请求
 }
 
@@ -100,12 +204,12 @@ void Widget::doProcessSelectWB()
                        QMessageBox::Yes | QMessageBox::YesAll | QMessageBox::Save |
                        QMessageBox::Ok | QMessageBox::Open | QMessageBox::No |
                        QMessageBox::Cancel);
-    msgbox.setButtonText(QMessageBox::Yes,"Morn1h");      //日出一小时  3500K
-    msgbox.setButtonText(QMessageBox::YesAll,"Morn2h");   //日出两小时  4700K
+    msgbox.setButtonText(QMessageBox::Yes,"Mor1h");      //日出一小时  3500K
+    msgbox.setButtonText(QMessageBox::YesAll,"Mor2h");   //日出两小时  4700K
     msgbox.setButtonText(QMessageBox::Save,"Cloudy");    //阴天       7000K
     msgbox.setButtonText(QMessageBox::Ok,"Sunny");       //正午阳光    6000K
-    msgbox.setButtonText(QMessageBox::Open,"Tungsten");  //钨丝灯      3000K
-    msgbox.setButtonText(QMessageBox::No,"Fluorescent"); //日光灯      6000K
+    msgbox.setButtonText(QMessageBox::Open,"Tung");      //钨丝灯      3000K
+    msgbox.setButtonText(QMessageBox::No,"Flus");        //日光灯      6000K
     msgbox.setButtonText(QMessageBox::Cancel,"Sunset");  //日落        2500K
     msgbox.setDefaultButton(QMessageBox::Ok);
     switch(msgbox.exec()){
@@ -168,7 +272,7 @@ void Widget::doProcessCapture()
 //图片存储类型转换
 void Widget::doProcessDisplay(QImage img)
 {
-    ui->Bt_SaveImg->setEnabled(true);
+    ui->Bt_ViewImg->setEnabled(true);
     ui->Bt_CamClose->setEnabled(true);
 
     p_img = QPixmap::fromImage(img);  //QImage转化为QPixmap
@@ -184,21 +288,50 @@ void Widget::paintEvent(QPaintEvent *)
     QMutexLocker locker(&myMutex); //加锁,主要目的是锁住全局的p_img,防止绘制期间被篡改
     //绘制图形
     mypainter.drawPixmap(PIX_X,PIX_Y,SHOW_WIDTH,SHOW_HEIGHT,p_img);
-    //绘制图像拍摄指引框
+
+
+    //画目标索引框
     QPen pen(QPen(Qt::green,2,Qt::DashDotDotLine)); //设置画笔形式
     mypainter.setPen(pen);
-    mypainter.drawRect(OBJ_X,OBJ_Y,OBJ_WIDTH,OBJ_HEIGHT);//画目标索引框
+    mypainter.drawRect(OBJ_X,OBJ_Y,OBJ_WIDTH,OBJ_HEIGHT);
+
+    //画分界线(1/3)
+    QPen penMid(QPen(Qt::red,2,Qt::DashDotDotLine)); //设置画笔形式
+    mypainter.setPen(penMid);
+    mypainter.drawLine(OBJ_X+OBJ_WIDTH/3,OBJ_Y,OBJ_X+OBJ_WIDTH/3,OBJ_Y+OBJ_HEIGHT);
+
+    //开启四个遮罩窗口
+    QString str("QWidget{background-color:rgba(0,0,0,0.6);}");
+    mpShadeWindow1->setStyleSheet(str);
+    mpShadeWindow1->setGeometry(0, 28, 390, OBJ_Y-28);
+    //mpShadeWindow->setWindowOpacity(0.6);
+    mpShadeWindow1->show();
+
+    mpShadeWindow2->setStyleSheet(str);
+    mpShadeWindow2->setGeometry(0, OBJ_Y, OBJ_X, OBJ_HEIGHT);
+    mpShadeWindow2->show();
+
+    mpShadeWindow3->setStyleSheet(str);
+    mpShadeWindow3->setGeometry(0, OBJ_Y+OBJ_HEIGHT, 390, OBJ_Y-28);
+    mpShadeWindow3->show();
+
+    mpShadeWindow4->setStyleSheet(str);
+    mpShadeWindow4->setGeometry(OBJ_X+OBJ_WIDTH, OBJ_Y, OBJ_X, OBJ_HEIGHT);
+    mpShadeWindow4->show();
 }
 
 //预览并保存图片
 void Widget::doProcessViewImg()
 {
+    //停止后台采集
+    capTimer->stop();
+
     //格式化图片保存名称
 //    index++;
 //    char outfile[50];
 //    sprintf(outfile, "/app/cap_test%d.jpg", index);
 
-    //图片名加入时间戳
+    //构造带时间戳的图片名
     struct tm *ptr;
     time_t t;
     char outfile[100];
@@ -208,9 +341,10 @@ void Widget::doProcessViewImg()
     strcat(outfile,".jpg");
 
     //预览对话框
-    QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No);
-    msgbox.setButtonText(QMessageBox::Yes,"Save");
-    msgbox.setButtonText(QMessageBox::No,"Cancel");
+    QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
+    msgbox.setButtonText(QMessageBox::Yes,"Save");     //保存
+    msgbox.setButtonText(QMessageBox::Ok,"Measure");   //测量
+    msgbox.setButtonText(QMessageBox::No,"Cancel");    //取消
 
     myMutex.lock();  //加锁
     sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
@@ -218,10 +352,9 @@ void Widget::doProcessViewImg()
 
     pp_img = sp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
     msgbox.setIconPixmap(pp_img);    //将图片显示在对话框中
-
     myMutex.unlock();  //解锁
 
-    //判断用户操作
+    //保存
     if(msgbox.exec() == QMessageBox::Yes)
     {
         pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
@@ -236,7 +369,44 @@ void Widget::doProcessViewImg()
         }
     }
 
+    //尺寸测量
+    if(msgbox.exec() == QMessageBox::Ok)
+    {
+        Mat src,m_src;
 
+        QImage m_img = sp_img.toImage();  //QPixmap转QImage
+        src = QImage2cvMat(m_img);        //QImage 转 Mat
+        m_src = measure(src);             //尺寸测量
+        QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
+        QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
+
+        //显示
+        QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
+        msg_measure.setButtonText(QMessageBox::Yes,"Save");    //保存
+        msg_measure.setButtonText(QMessageBox::Ok,"Cancel");   //取消
+
+        QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+        msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
+
+        //保存
+        if(msg_measure.exec() == QMessageBox::Yes)
+        {
+            QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+            bool ret = ss_img.save(outfile);   //保存图片
+            if(!ret){
+                ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
+                ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            }
+            else{
+                ui->lineEdit_wbShow->setText("Save succeed!");
+                ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            }
+        }
+
+     }
+
+    //重启采集定时器
+    capTimer->start(1000.000/30);
 }
 
 //移除TF卡

@@ -47,7 +47,7 @@ font: 18pt &quot;Sans Serif&quot;;</string>
     <string>Open</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="Bt_SaveImg">
+  <widget class="QPushButton" name="Bt_ViewImg">
    <property name="geometry">
     <rect>
      <x>400</x>

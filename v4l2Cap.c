@@ -386,15 +386,15 @@ void set_cap_para()
     }
     printf("\n");
 
-    printf("【*********************设置白平衡色温：*****************************】\n");
-    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    ctrl.value = 5500;
-     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf("\n");
+//    printf("【*********************设置白平衡色温：*****************************】\n");
+//    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+//    ctrl.value = 4600;
+//     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf("\n");
 
     printf("【***********************设置亮度：******************************】\n");
     ctrl.id= V4L2_CID_BRIGHTNESS;
@@ -408,7 +408,7 @@ void set_cap_para()
 
     printf("【**********************设置对比度：******************************】\n");
     ctrl.id = V4L2_CID_CONTRAST;
-    ctrl.value= 32;
+    ctrl.value= 2;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -418,7 +418,7 @@ void set_cap_para()
 
     printf("【**********************设置饱和度：******************************】\n");
     ctrl.id = V4L2_CID_SATURATION;
-    ctrl.value= 50;
+    ctrl.value= 48;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -438,7 +438,7 @@ void set_cap_para()
 
     printf("【***********************设置锐度：******************************】\n");
     ctrl.id = V4L2_CID_SHARPNESS;
-    ctrl.value = 2;
+    ctrl.value = 0;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -449,7 +449,7 @@ void set_cap_para()
 
     printf("【**********************设置背光补偿：*****************************】\n");
     ctrl.id = V4L2_CID_BACKLIGHT_COMPENSATION;
-    ctrl.value = 1;
+    ctrl.value = 56;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");

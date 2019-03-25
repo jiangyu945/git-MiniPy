@@ -26,7 +26,7 @@ class Ui_Widget
 public:
     QPushButton *Bt_CamClose;
     QPushButton *Bt_CamOpen;
-    QPushButton *Bt_SaveImg;
+    QPushButton *Bt_ViewImg;
     QFrame *line;
     QFrame *line_2;
     QFrame *line_3;
@@ -51,10 +51,10 @@ public:
         Bt_CamOpen->setGeometry(QRect(400, 0, 80, 62));
         Bt_CamOpen->setStyleSheet(QLatin1String("background-color: rgb(0, 255, 0);\n"
 "font: 18pt \"Sans Serif\";"));
-        Bt_SaveImg = new QPushButton(Widget);
-        Bt_SaveImg->setObjectName(QStringLiteral("Bt_SaveImg"));
-        Bt_SaveImg->setGeometry(QRect(400, 140, 80, 62));
-        Bt_SaveImg->setStyleSheet(QLatin1String("font: oblique 18pt \"Sans Serif\";\n"
+        Bt_ViewImg = new QPushButton(Widget);
+        Bt_ViewImg->setObjectName(QStringLiteral("Bt_ViewImg"));
+        Bt_ViewImg->setGeometry(QRect(400, 140, 80, 62));
+        Bt_ViewImg->setStyleSheet(QLatin1String("font: oblique 18pt \"Sans Serif\";\n"
 "background-color: rgb(255, 255, 0);\n"
 ""));
         line = new QFrame(Widget);
@@ -110,7 +110,7 @@ public:
         Widget->setWindowTitle(QApplication::translate("Widget", "Widget", 0));
         Bt_CamClose->setText(QApplication::translate("Widget", "Close", 0));
         Bt_CamOpen->setText(QApplication::translate("Widget", "Open", 0));
-        Bt_SaveImg->setText(QApplication::translate("Widget", "View", 0));
+        Bt_ViewImg->setText(QApplication::translate("Widget", "View", 0));
         Bt_SWB->setText(QApplication::translate("Widget", "SWB", 0));
         lineEdit_wbShow->setText(QApplication::translate("Widget", "WB Mode Tip", 0));
         Bt_remove->setText(QApplication::translate("Widget", "Remove", 0));

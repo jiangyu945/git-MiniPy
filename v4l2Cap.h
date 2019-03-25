@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-#define  DEV_NAME  "/dev/video5"
+#define  DEV_NAME  "/dev/video4"
 
 #define  WIDTH    1920
 #define  HEIGHT   1080

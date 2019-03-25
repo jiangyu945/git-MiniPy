@@ -19,6 +19,7 @@
 #include "v4l2Cap.h"
 #include "workerthread.h"
 
+
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
 #define  SHOW_HEIGHT  240    //屏高(仅指可显示高度)
@@ -28,9 +29,9 @@
 #define  PIX_Y   32
 
 //目标索引框
-#define  OBJ_WIDTH    180
+#define  OBJ_WIDTH    220
 #define  OBJ_HEIGHT   180
-#define  OBJ_X     105
+#define  OBJ_X     85
 #define  OBJ_Y     62
 
 namespace Ui {
@@ -63,6 +64,11 @@ protected:
 
 private:
     Ui::Widget *ui;
+    QWidget* mpShadeWindow1;  //遮罩窗口1
+    QWidget* mpShadeWindow2;  //遮罩窗口2
+    QWidget* mpShadeWindow3;  //遮罩窗口3
+    QWidget* mpShadeWindow4;  //遮罩窗口4
+    QDialog* showDlg;  //显示对话框
 
     QImage img;
     QPixmap p_img,sp_img,pp_img;
@@ -77,6 +83,7 @@ private:
 
     void init();
     void startObjthread();
+    void showTime();
 };
 
 #endif // WIDGET_H

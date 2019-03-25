@@ -15,7 +15,7 @@ CXX           = arm-none-linux-gnueabi-g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -march=armv7-a -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -O2 -march=armv7-a -O2 -march=armv7-a -O2 -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I. -I. -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++
+INCPATH       = -I. -I../../../opencv/opencv-3.2.0/output/include -I../../../opencv/opencv-3.2.0/output/include/opencv -I../../../opencv/opencv-3.2.0/output/include/opencv2 -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I. -I. -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++
 QMAKE         = /opt/qt5.7.0/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -36,7 +36,7 @@ DISTNAME      = MiniPy1.0.0
 DISTDIR = /home/jiangyu/code/qt/MiniPy/.tmp/MiniPy1.0.0
 LINK          = arm-none-linux-gnueabi-g++
 LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) -L/opt/qt5.7.0/lib -lQt5Widgets -L/opt/tslib1.4/lib -lQt5Gui -lQt5Core -lpthread 
+LIBS          = $(SUBLIBS) /home/jiangyu/opencv/opencv-3.2.0/output/lib/libopencv_highgui.so /home/jiangyu/opencv/opencv-3.2.0/output/lib/libopencv_core.so /home/jiangyu/opencv/opencv-3.2.0/output/lib/libopencv_imgproc.so /home/jiangyu/opencv/opencv-3.2.0/output/lib/libopencv_imgcodecs.so /home/jiangyu/opencv/opencv-3.2.0/output/lib/libopencv_videoio.so -L/opt/qt5.7.0/lib -lQt5Widgets -L/opt/tslib1.4/lib -lQt5Gui -lQt5Core -lpthread 
 AR            = arm-none-linux-gnueabi-ar cqs
 RANLIB        = 
 SED           = sed
@@ -51,12 +51,14 @@ OBJECTS_DIR   = ./
 SOURCES       = main.cpp \
 		widget.cpp \
 		v4l2Cap.c \
-		workerthread.cpp moc_widget.cpp \
+		workerthread.cpp \
+		opencv_measure.cpp moc_widget.cpp \
 		moc_workerthread.cpp
 OBJECTS       = main.o \
 		widget.o \
 		v4l2Cap.o \
 		workerthread.o \
+		opencv_measure.o \
 		moc_widget.o \
 		moc_workerthread.o
 DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
@@ -158,10 +160,12 @@ DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
 		/opt/qt5.7.0/mkspecs/features/lex.prf \
 		MiniPy.pro widget.h \
 		v4l2Cap.h \
-		workerthread.h main.cpp \
+		workerthread.h \
+		opencv_measure.h main.cpp \
 		widget.cpp \
 		v4l2Cap.c \
-		workerthread.cpp
+		workerthread.cpp \
+		opencv_measure.cpp
 QMAKE_TARGET  = MiniPy
 DESTDIR       = 
 TARGET        = MiniPy
@@ -390,8 +394,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents widget.h v4l2Cap.h workerthread.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c workerthread.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents widget.h v4l2Cap.h workerthread.h opencv_measure.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c workerthread.cpp opencv_measure.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents widget.ui $(DISTDIR)/
 
 
@@ -545,7 +549,7 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
 		widget.h \
 		/opt/qt5.7.0/bin/moc
-	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include widget.h -o moc_widget.cpp
+	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/home/jiangyu/opencv/opencv-3.2.0/output/include -I/home/jiangyu/opencv/opencv-3.2.0/output/include/opencv -I/home/jiangyu/opencv/opencv-3.2.0/output/include/opencv2 -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include widget.h -o moc_widget.cpp
 
 moc_workerthread.cpp: /opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/qobject.h \
@@ -639,7 +643,7 @@ moc_workerthread.cpp: /opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		workerthread.h \
 		/opt/qt5.7.0/bin/moc
-	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include workerthread.h -o moc_workerthread.cpp
+	/opt/qt5.7.0/bin/moc $(DEFINES) -I/opt/qt5.7.0/mkspecs/linux-arm-gnueabi-g++ -I/home/jiangyu/code/qt/MiniPy -I/home/jiangyu/opencv/opencv-3.2.0/output/include -I/home/jiangyu/opencv/opencv-3.2.0/output/include/opencv -I/home/jiangyu/opencv/opencv-3.2.0/output/include/opencv2 -I/opt/qt5.7.0/include -I/opt/qt5.7.0/include/QtWidgets -I/opt/qt5.7.0/include/QtGui -I/opt/qt5.7.0/include/QtCore -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3 -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/arm-none-linux-gnueabi -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include/c++/4.8.3/backward -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include -I/usr/local/arm/arm-2014.05/lib/gcc/arm-none-linux-gnueabi/4.8.3/include-fixed -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/include -I/usr/local/arm/arm-2014.05/arm-none-linux-gnueabi/libc/usr/include workerthread.h -o moc_workerthread.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -951,9 +955,132 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtWidgets/qtabbar.h \
 		/opt/qt5.7.0/include/QtWidgets/qtabwidget.h \
 		/opt/qt5.7.0/include/QtWidgets/qrubberband.h \
+		/opt/qt5.7.0/include/QtWidgets/QLineEdit \
+		/opt/qt5.7.0/include/QtWidgets/qlineedit.h \
+		/opt/qt5.7.0/include/QtGui/qtextcursor.h \
+		/opt/qt5.7.0/include/QtGui/qtextformat.h \
 		/opt/qt5.7.0/include/QtWidgets/QPushButton \
 		/opt/qt5.7.0/include/QtWidgets/qpushbutton.h \
-		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h
+		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h \
+		opencv_measure.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv_modules.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvdef.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/hal/interface.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/version.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/base.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvstd.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/ptr.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/neon_utils.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/traits.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/matx.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/saturate.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/fast_math.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/types.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/mat.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/bufferpool.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/mat.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/persistence.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/operations.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvstd.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/utility.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/core_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/types_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/optim.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/ovx.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/calib3d.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/features2d.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/miniflann.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/defines.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/config.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/affine.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/calib3d/calib3d_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/flann_base.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/general.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/matrix.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/params.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/any.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/saving.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/nn_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/result_set.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/all_indices.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kdtree_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/dynamic_bitset.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/dist.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/heap.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/allocator.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/random.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kdtree_single_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kmeans_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/logger.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/composite_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/linear_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/hierarchical_clustering_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/lsh_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/lsh_table.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/autotuned_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/ground_truth.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/index_testing.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/timer.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/sampling.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/highgui.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgcodecs.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videoio.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/highgui/highgui_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc/imgproc_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc/types_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgcodecs/imgcodecs_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videoio/videoio_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/ml.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect/detection_based_tracker.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect/objdetect_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/photo.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/photo/photo_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/emdL1.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/shape_transformer.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/hist_cost.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/shape_distance.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/warpers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/warpers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda_types.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/warpers_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/matchers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/motion_estimators.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/util.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/util_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/camera.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/exposure_compensate.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/seam_finders.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/blenders.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/superres.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/superres/optical_flow.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/tracking.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/background_segm.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/tracking_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/stabilizer.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/global_motion.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/optical_flow.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/motion_core.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/outlier_rejection.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/motion_stabilizing.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/frame_source.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/log.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/inpainting.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/fast_marching.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/fast_marching_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/deblurring.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/wobble_suppression.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/ring_buffer.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o widget.o widget.cpp
 
 v4l2Cap.o: v4l2Cap.c v4l2Cap.h
@@ -1052,6 +1179,127 @@ workerthread.o: workerthread.cpp workerthread.h \
 		/opt/qt5.7.0/include/QtCore/qdatetime.h \
 		v4l2Cap.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o workerthread.o workerthread.cpp
+
+opencv_measure.o: opencv_measure.cpp opencv_measure.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv_modules.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvdef.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/hal/interface.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/version.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/base.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvstd.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/ptr.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/neon_utils.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/traits.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/matx.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/saturate.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/fast_math.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/types.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/mat.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/bufferpool.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/mat.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/persistence.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/operations.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cvstd.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/utility.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/core_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/types_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/optim.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/ovx.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/calib3d.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/features2d.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/miniflann.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/defines.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/config.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/affine.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/calib3d/calib3d_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/flann_base.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/general.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/matrix.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/params.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/any.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/saving.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/nn_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/result_set.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/all_indices.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kdtree_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/dynamic_bitset.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/dist.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/heap.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/allocator.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/random.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kdtree_single_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/kmeans_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/logger.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/composite_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/linear_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/hierarchical_clustering_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/lsh_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/lsh_table.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/autotuned_index.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/ground_truth.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/index_testing.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/timer.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/flann/sampling.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/highgui.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgcodecs.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videoio.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/highgui/highgui_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc/imgproc_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc/types_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgcodecs/imgcodecs_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videoio/videoio_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/imgproc.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/ml.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect/detection_based_tracker.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/objdetect/objdetect_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/photo.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/photo/photo_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/emdL1.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/shape_transformer.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/hist_cost.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/shape/shape_distance.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/warpers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/warpers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda_types.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/core/cuda.inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/warpers_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/matchers.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/motion_estimators.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/util.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/util_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/camera.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/exposure_compensate.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/seam_finders.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/stitching/detail/blenders.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/superres.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/superres/optical_flow.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/tracking.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/background_segm.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/video/tracking_c.h \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/stabilizer.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/global_motion.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/optical_flow.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/motion_core.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/outlier_rejection.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/motion_stabilizing.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/frame_source.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/log.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/inpainting.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/fast_marching.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/fast_marching_inl.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/deblurring.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/wobble_suppression.hpp \
+		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/ring_buffer.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o opencv_measure.o opencv_measure.cpp
 
 moc_widget.o: moc_widget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_widget.o moc_widget.cpp
