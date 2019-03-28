@@ -2,6 +2,8 @@
 #include "ui_widget.h"
 #include "opencv_measure.h"
 
+
+
 QMutex myMutex;
 
 Widget::Widget(QWidget *parent) :
@@ -15,9 +17,9 @@ Widget::Widget(QWidget *parent) :
     mpShadeWindow2 = new QWidget(this); //遮罩窗口2
     mpShadeWindow3 = new QWidget(this); //遮罩窗口3
     mpShadeWindow4 = new QWidget(this); //遮罩窗口4
+
     init();  //初始化
     startObjthread(); //启动多线程
-
     //显示当前时间,确保网络时间获取成功
     showTime();
 }
@@ -40,6 +42,7 @@ void Widget::init()
     ui->Bt_ViewImg->setEnabled(false);   //预览
     ui->Bt_CamClose->setEnabled(false);  //关闭
     ui->Bt_remove->setEnabled(false);    //移除TF卡
+
 
     capTimer = new QTimer(this);
     showTimer =new QTimer(this);
@@ -159,13 +162,9 @@ cv::Mat QImage2cvMat(QImage image)
     return mat;
 }
 
-
-
-
 /*========================================SLOT=========================================*/
 //打开摄像头
 void Widget::doProcessOpenCam(){
-
     //打开摄像头
     int ret = open_cam();
     if(ret == -1){
@@ -190,7 +189,7 @@ void Widget::doProcessOpenCam(){
     epoll_cam();
 
     ui->Bt_CamOpen->setEnabled(false);
-    ui->Bt_SWB->setEnabled(true);
+    ui->Bt_SWB->setEnabled(false);
     ui->Bt_remove->setEnabled(true);
 
     capTimer->start(1000.000/30);    //定时发送采集请求
@@ -273,7 +272,6 @@ void Widget::doProcessCapture()
 void Widget::doProcessDisplay(QImage img)
 {
     ui->Bt_ViewImg->setEnabled(true);
-    ui->Bt_CamClose->setEnabled(true);
 
     p_img = QPixmap::fromImage(img);  //QImage转化为QPixmap
 
@@ -301,7 +299,7 @@ void Widget::paintEvent(QPaintEvent *)
     mypainter.drawLine(OBJ_X+OBJ_WIDTH/3,OBJ_Y,OBJ_X+OBJ_WIDTH/3,OBJ_Y+OBJ_HEIGHT);
 
     //开启四个遮罩窗口
-    QString str("QWidget{background-color:rgba(0,0,0,0.6);}");
+    QString str("QWidget{background-color:rgba(0,0,0,0.7);}");  //透明度0-1
     mpShadeWindow1->setStyleSheet(str);
     mpShadeWindow1->setGeometry(0, 28, 390, OBJ_Y-28);
     //mpShadeWindow->setWindowOpacity(0.6);
@@ -345,6 +343,7 @@ void Widget::doProcessViewImg()
     msgbox.setButtonText(QMessageBox::Yes,"Save");     //保存
     msgbox.setButtonText(QMessageBox::Ok,"Measure");   //测量
     msgbox.setButtonText(QMessageBox::No,"Cancel");    //取消
+    msgbox.setDefaultButton(QMessageBox::No);
 
     myMutex.lock();  //加锁
     sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
@@ -357,8 +356,8 @@ void Widget::doProcessViewImg()
     //保存
     if(msgbox.exec() == QMessageBox::Yes)
     {
-        pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-        bool ret = pp_img.save(outfile);   //保存图片
+        //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+        bool ret = sp_img.save(outfile);   //保存图片
         if(!ret){
             ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
             ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
@@ -376,16 +375,19 @@ void Widget::doProcessViewImg()
 
         QImage m_img = sp_img.toImage();  //QPixmap转QImage
         src = QImage2cvMat(m_img);        //QImage 转 Mat
-        m_src = measure(src);             //尺寸测量
+        m_src = opencv_measure(src);             //尺寸测量
         QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
         QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
+
 
         //显示
         QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
         msg_measure.setButtonText(QMessageBox::Yes,"Save");    //保存
         msg_measure.setButtonText(QMessageBox::Ok,"Cancel");   //取消
 
-        QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+        //msg_measure.setGeometry(0,32,340,240);
+
+        QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果 360 222
         msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
 
         //保存
@@ -438,7 +440,6 @@ void Widget::doProcessCloseCam()
             stop_cap();   //失能视频流输出
             close_cam();  //关闭摄像头
 
-            ui->Bt_CamClose->setEnabled(false);
             ui->Bt_CamOpen->setEnabled(true);
 //            qApp->quit(); //退出应用程序 (存在问题:执行后程序并未退出!!!)
             break;

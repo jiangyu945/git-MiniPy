@@ -19,7 +19,6 @@
 #include "v4l2Cap.h"
 #include "workerthread.h"
 
-
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
 #define  SHOW_HEIGHT  240    //屏高(仅指可显示高度)
@@ -68,7 +67,6 @@ private:
     QWidget* mpShadeWindow2;  //遮罩窗口2
     QWidget* mpShadeWindow3;  //遮罩窗口3
     QWidget* mpShadeWindow4;  //遮罩窗口4
-    QDialog* showDlg;  //显示对话框
 
     QImage img;
     QPixmap p_img,sp_img,pp_img;
@@ -81,9 +79,9 @@ private:
 
     QTime t;
 
-    void init();
-    void startObjthread();
-    void showTime();
+    void init();    //初始化
+    void startObjthread(); //开启多线程
+    void showTime();    //日期显示
 };
 
 #endif // WIDGET_H

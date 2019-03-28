@@ -14,43 +14,40 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QDialog>
-#include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
 
 QT_BEGIN_NAMESPACE
 
-class Ui_ShowDlg
+class Ui_Showdlg
 {
 public:
-    QDialogButtonBox *buttonBox;
+    QLabel *label_show;
 
-    void setupUi(QDialog *ShowDlg)
+    void setupUi(QDialog *Showdlg)
     {
-        if (ShowDlg->objectName().isEmpty())
-            ShowDlg->setObjectName(QStringLiteral("ShowDlg"));
-        ShowDlg->resize(480, 272);
-        buttonBox = new QDialogButtonBox(ShowDlg);
-        buttonBox->setObjectName(QStringLiteral("buttonBox"));
-        buttonBox->setGeometry(QRect(400, 0, 80, 272));
-        buttonBox->setOrientation(Qt::Vertical);
-        buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+        if (Showdlg->objectName().isEmpty())
+            Showdlg->setObjectName(QStringLiteral("Showdlg"));
+        Showdlg->resize(390, 240);
+        label_show = new QLabel(Showdlg);
+        label_show->setObjectName(QStringLiteral("label_show"));
+        label_show->setGeometry(QRect(0, 0, 390, 240));
 
-        retranslateUi(ShowDlg);
-        QObject::connect(buttonBox, SIGNAL(accepted()), ShowDlg, SLOT(accept()));
-        QObject::connect(buttonBox, SIGNAL(rejected()), ShowDlg, SLOT(reject()));
+        retranslateUi(Showdlg);
 
-        QMetaObject::connectSlotsByName(ShowDlg);
+        QMetaObject::connectSlotsByName(Showdlg);
     } // setupUi
 
-    void retranslateUi(QDialog *ShowDlg)
+    void retranslateUi(QDialog *Showdlg)
     {
-        ShowDlg->setWindowTitle(QApplication::translate("ShowDlg", "Dialog", 0));
+        Showdlg->setWindowTitle(QApplication::translate("Showdlg", "Dialog", 0));
+        label_show->setText(QApplication::translate("Showdlg", "Image Area", 0));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class ShowDlg: public Ui_ShowDlg {};
+    class Showdlg: public Ui_Showdlg {};
 } // namespace Ui
 
 QT_END_NAMESPACE

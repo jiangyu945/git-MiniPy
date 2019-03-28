@@ -26,7 +26,20 @@
 extern "C" {
 #endif
 
-#define  DEV_NAME  "/dev/video4"
+#define  DEV_NAME  "/dev/video4"     //设备号video0,video5
+
+#define  G_PIX_FORMAT       V4L2_PIX_FMT_MJPEG    //采集格式：V4L2_PIX_FMT_MJPEG或V4L2_PIX_FMT_YUYV
+#define  G_CAP_FPS          30                    //采集帧率
+#define  G_WB_TEMPERATURE   5500                  //色温值
+#define  G_BRIGHTNESS       50                    //亮度
+#define  G_CONTRAST         2                     //对比度
+#define  G_SATURATION       48                    //饱和度
+#define  G_HUE              0                     //色度
+#define  G_SHARPNESS        0                     //锐度
+#define  G_BACKLIGHT_COMP   56                    //背光补偿
+#define  G_GAMMA            100                   //伽玛
+#define  G_EXPOSURE_TIME    156                   //曝光时间，即快门速度(10-2500),单位100us
+#define  G_GAIN             100                   //增益（80-176）
 
 #define  WIDTH    1920
 #define  HEIGHT   1080

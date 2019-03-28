@@ -156,10 +156,24 @@ int open_cam()
     if ((cap.capabilities & V4L2_CAP_STREAMING) == V4L2_CAP_STREAMING){
         printf("Device %s: supports streaming.\n",DEV_NAME);
     }
+
     return 0;
 }
 
 int get_cap_para(){
+
+
+    //相关属性查询
+//    struct v4l2_queryctrl qrl;
+//    qrl.id = V4L2_CID_IRIS_ABSOLUTE;
+
+//    ioctl(cam_fd,VIDIOC_QUERYCAP,&qrl);
+//    printf("default_value = %d\n",qrl.default_value);
+//    printf("minimum = %d\n",qrl.minimum);
+//    printf("maximum = %d\n",qrl.maximum);
+
+
+
 /*
  函数   ：int ioctl(intfd, int request, struct v4l2_fmtdesc *argp);
  struct v4l2_fmtdesc
@@ -213,14 +227,14 @@ int get_cap_para(){
     printf("\n");
 
 
-    printf("【**********************获取白平衡：******************************】\n");
+    printf("【**********************获取白平衡模式：******************************】\n");
     ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
     if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
         exit(EXIT_FAILURE);
     }
-    printf(">>: 白平衡值: %d \n",ctrl.value);
+    printf(">>: 白平衡模式: %d \n",ctrl.value);
     printf("\n");
 
 
@@ -308,6 +322,38 @@ int get_cap_para(){
     printf(">>: 伽玛值: %d \n",ctrl.value);
     printf("\n");
 
+    printf("*************************获取曝光绝对值****************************\n"); //一般设置曝光是设置它
+    ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">: 曝光绝对值: %d\n",ctrl.value);
+    printf("\n");
+
+
+//    printf("*************************获取光圈大小****************************\n");
+//    ctrl.id = V4L2_CID_IRIS_ABSOLUTE;
+//    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf(">: 光圈大小: %d\n",ctrl.value);
+//    printf("\n");
+
+    printf("***************************获取增益值************************\n");
+    ctrl.id= V4L2_CID_GAIN;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf(">>: 增益: %d \n",ctrl.value);
+    printf("\n");
+
+
 #if 0
 //以下参数在该型号（双目122）摄像头，无法调节
     printf("***************************获取增益值************************\n");
@@ -366,7 +412,7 @@ void set_cap_para()
     Format.type= V4L2_BUF_TYPE_VIDEO_CAPTURE;
     Format.fmt.pix.width =  WIDTH;
     Format.fmt.pix.height = HEIGHT;
-    Format.fmt.pix.pixelformat= V4L2_PIX_FMT_MJPEG;
+    Format.fmt.pix.pixelformat= G_PIX_FORMAT;
     Format.fmt.pix.field = (enum v4l2_field)1;
     if(ioctl(cam_fd,VIDIOC_S_FMT,&Format)==-1)
     {
@@ -377,7 +423,7 @@ void set_cap_para()
 
     printf("【***********************设置帧率：******************************】\n");
     Stream_Parm.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    Stream_Parm.parm.capture.timeperframe.denominator =30;
+    Stream_Parm.parm.capture.timeperframe.denominator = G_CAP_FPS;
     Stream_Parm.parm.capture.timeperframe.numerator =1;
     if(ioctl(cam_fd,VIDIOC_S_PARM,&Stream_Parm)==-1)
     {
@@ -388,7 +434,7 @@ void set_cap_para()
 
 //    printf("【*********************设置白平衡色温：*****************************】\n");
 //    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-//    ctrl.value = 4600;
+//    ctrl.value = WHITE_BALANCE_TEMPERATURE;
 //     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
 //    {
 //        perror("ioctl");
@@ -398,7 +444,7 @@ void set_cap_para()
 
     printf("【***********************设置亮度：******************************】\n");
     ctrl.id= V4L2_CID_BRIGHTNESS;
-    ctrl.value = 0;
+    ctrl.value = G_BRIGHTNESS;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -408,7 +454,7 @@ void set_cap_para()
 
     printf("【**********************设置对比度：******************************】\n");
     ctrl.id = V4L2_CID_CONTRAST;
-    ctrl.value= 2;
+    ctrl.value= G_CONTRAST;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -418,7 +464,7 @@ void set_cap_para()
 
     printf("【**********************设置饱和度：******************************】\n");
     ctrl.id = V4L2_CID_SATURATION;
-    ctrl.value= 48;
+    ctrl.value= G_SATURATION;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -428,7 +474,7 @@ void set_cap_para()
 
     printf("【***********************设置色度：******************************】\n");
     ctrl.id = V4L2_CID_HUE;
-    ctrl.value = 0;
+    ctrl.value = G_HUE;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -438,7 +484,7 @@ void set_cap_para()
 
     printf("【***********************设置锐度：******************************】\n");
     ctrl.id = V4L2_CID_SHARPNESS;
-    ctrl.value = 0;
+    ctrl.value = G_SHARPNESS;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -449,7 +495,7 @@ void set_cap_para()
 
     printf("【**********************设置背光补偿：*****************************】\n");
     ctrl.id = V4L2_CID_BACKLIGHT_COMPENSATION;
-    ctrl.value = 56;
+    ctrl.value = G_BACKLIGHT_COMP;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -459,7 +505,7 @@ void set_cap_para()
 
     printf("【**********************设置伽玛值：******************************】\n");
     ctrl.id = V4L2_CID_GAMMA;
-    ctrl.value = 100;
+    ctrl.value = G_GAMMA;
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -467,6 +513,41 @@ void set_cap_para()
     }
     printf("\n");
 
+
+    //曝光强度=曝光时间*光圈大小*ISO(此处保持光圈大小和ISO值不变,仅调整曝光时间来进行调整)
+    /***********设置手动曝光***************************/
+    printf("【**********设置手动曝光**************************】\n");
+    ctrl.id= V4L2_CID_EXPOSURE_AUTO;
+    ctrl.value=V4L2_EXPOSURE_MANUAL;   //手动曝光时间,手动光圈
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    /***********设置曝光绝对值***************************/
+    printf("【***********设置曝光时间************************】\n");
+    ctrl.id= V4L2_CID_EXPOSURE_ABSOLUTE;
+    ctrl.value= G_EXPOSURE_TIME;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+
+     /***************设置增益***************************/
+     printf("【***************设置增益***************************】\n");
+     ctrl.id = V4L2_CID_GAIN;
+     ctrl.value = G_GAIN;   //测得范围80-176，默认值100
+     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+     {
+         perror("ioctl");
+         exit(EXIT_FAILURE);
+     }
+     printf("\n");
 
 
     printf("【******************验证设置**********************】\n");

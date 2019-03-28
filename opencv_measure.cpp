@@ -7,7 +7,7 @@ void PaintText(Mat& img, char* text, Point origin)
 {
     int fontface = CV_FONT_HERSHEY_SIMPLEX;   //字体
     double fontscale = 1.0;                   //尺寸因子，值越大文字越大
-    Scalar textcolor = Scalar(0, 0, 0);    //文本颜色
+    Scalar textcolor = Scalar(0, 0, 255);    //文本颜色
     int thickness = 4;  //线宽
     int linetype = 8;   //线型
 
@@ -42,15 +42,7 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
     }
 
     //第二轮筛选：剔除面积小于指定阈值的轮廓
-    //计算轮廓的面积
-//    double g_dConArea;
-//    for (unsigned int i = 0; i < contours.size(); i++)
-//    {
-//        g_dConArea = fabs(contourArea(contours[i], true));
-//    }
-
-//    //剔除小面积轮廓
-//    //vector <vector<Point>>::const_iterator itc = contours.begin();
+   //剔除小面积轮廓
     itc = contours.begin();
     for (; itc != contours.end();)
     {
@@ -81,9 +73,9 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
         Point2f rect_points[4];
         minRect[i].points(rect_points);
 
-        //寻找比例尺，四顶点均位于左半图
-        if (!flag && rect_points[0].x < src.cols / 2 && rect_points[1].x < src.cols / 2 && rect_points[2].x < src.cols / 2
-            && rect_points[3].x < src.cols / 2)
+        //寻找比例尺，四顶点均位于左1/3图
+        if (!flag && rect_points[0].x < src.cols / 3 && rect_points[1].x < src.cols / 3 && rect_points[2].x < src.cols / 3
+            && rect_points[3].x < src.cols / 3)
         {
             flag = true;
             double length1 = sqrt(pow((rect_points[1].x - rect_points[0].x), 2) + pow((rect_points[1].y - rect_points[0].y), 2));
@@ -103,11 +95,11 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
     Point paint_point;      //中点位置
     char text[20] = { 0 };  //文本字符串数组
 
-                            //再遍历绘制外接矩形
+    //再次遍历，绘制外接矩形
     for (unsigned int i = 0; i< contours.size(); i++)
     {
         Scalar color = Scalar(255, 255, 255);  //白色轮廓线
-                                               //绘制轮廓
+        //绘制轮廓
         drawContours(src, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point());
         Point2f rect_points[4];
         minRect[i].points(rect_points);
@@ -124,9 +116,9 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
 
         paint_point.x = (rect_points[0].x + rect_points[1].x) / 2;    //寻找中点
         paint_point.y = (rect_points[0].y + rect_points[1].y) / 2;
-        PaintText(src, text, paint_point);   //文本标注
+        PaintText(src, text, paint_point);   //尺寸标注
 
-                                             //第二条边
+        //第二条边
         line(src, rect_points[1], rect_points[2], Scalar(255, 0, 0), 2, 8);  //蓝色边长
         length = pp* (sqrt(pow((rect_points[2].x - rect_points[1].x), 2) + pow((rect_points[2].y - rect_points[1].y), 2)));
         sprintf(text, "%.3lfmm", length);
@@ -146,7 +138,7 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
     //imshow("测量结果", src);
 }
 
-Mat& measure(Mat& src)
+Mat& opencv_measure(Mat& src)
 {
     Mat  src_gray, edge;
 
@@ -173,8 +165,6 @@ Mat& measure(Mat& src)
     Canny(src_gray, edge, 30, 90, 3);  //边缘检测,得到的是二值图像
     //imshow("边缘检测", edge);
 
-    fineMinAreaRect(edge, src);  //寻找最小外接矩形
-
-    return src;
+    return fineMinAreaRect(edge, src);  //寻找最小外接矩形
 }
 
