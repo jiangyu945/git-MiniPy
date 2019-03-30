@@ -1,7 +1,5 @@
 #include "widget.h"
 #include "ui_widget.h"
-#include "opencv_measure.h"
-
 
 
 QMutex myMutex;
@@ -64,7 +62,7 @@ void Widget::startObjthread()
 {
     workerObj = new workerThread;    //创建一个object
     workerObj->moveToThread(&worker);  //将对象移动到线程
-    connect(this,SIGNAL(SigToReadFrame(QImage)),workerObj,SLOT(doProcessReadFrame(QImage)));  //图像采集
+    connect(this,SIGNAL(SigToReadFrame()),workerObj,SLOT(doProcessReadFrame()));  //图像采集
 
     //线程结束后自动销毁
     connect(&worker,SIGNAL(finished()),workerObj,SLOT(deleteLater()));   //资源回收
@@ -162,6 +160,98 @@ cv::Mat QImage2cvMat(QImage image)
     return mat;
 }
 
+
+//白平衡矫正
+QImage wb_calibrate(QPixmap sp_img)
+{
+    QImage c_img = sp_img.toImage();
+    Mat mat = QImage2cvMat(c_img);        //此处得到的Mat对象格式类型为CV_8UC4
+    cvtColor(mat,mat,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
+   // Mat wb_src(mat.size(),mat.type());
+
+    /***********************注意：下面图像处理要求Mat格式类型必须为CV_8UC3!!!*********************/
+    const float inputMin = 0.0f;
+    const float inputMax = 255.0f;
+    const float outputMin = 0.0f;
+    const float outputMax = WB_VALUE;
+
+    std::vector<Mat> bgr;
+    split(mat, bgr);        //分离B、G、R三通道
+
+    // 在rgb三通道上分别计算直方图
+    // 将1%的最大值和最小值设置为255和0
+    // 其余值映射到(0, 255), 这样使得每个通道的值在rgb中分布较均匀, 以实现简单的颜色平衡
+    /********************* Simple white balance *********************/
+    float s1 = 1.0f;//最低值百分比：取1%
+    float s2 = 1.0f;//最高值百分比：取1%
+
+    int depth = 2;// depth of histogram tree
+    int bins = 16;// number of bins at each histogram level
+    int total = bgr[0].cols * bgr[0].rows;
+    int nElements = int(pow((float)bins, (float)depth));// number of elements in histogram tree
+
+    for (size_t k = 0; k < bgr.size(); ++k)
+    {
+        std::vector<int> hist(nElements, 0);
+        uchar *pImg = bgr[k].data;
+        // histogram filling
+        for (int i = 0; i < total; i++)
+        {
+            int pos = 0;
+            float minValue = inputMin - 0.5f;
+            float maxValue = inputMax + 0.5f;
+            float interval = float(maxValue - minValue) / bins;
+
+            uchar val = pImg[i];
+            for (int j = 0; j < depth; ++j)
+            {
+                int currentBin = int((val - minValue + 1e-4f) / interval);
+                ++hist[pos + currentBin];
+
+                pos = (pos + currentBin)*bins;
+                minValue = minValue + currentBin*interval;
+                interval /= bins;
+            }
+        }
+
+        int p1 = 0, p2 = bins - 1;
+        int n1 = 0, n2 = total;
+        float minValue = inputMin - 0.5f;
+        float maxValue = inputMax + 0.5f;
+        float interval = float(maxValue - minValue) / bins;
+
+        // searching for s1 and s2
+        for (int j = 0; j < depth; ++j)
+        {
+            while (n1 + hist[p1] < s1 * total / 100.0f)
+            {
+                n1 += hist[p1++];
+                minValue += interval;
+            }
+            p1 *= bins;
+
+            while (n2 - hist[p2] > (100.0f - s2) * total / 100.0f)
+            {
+                n2 -= hist[p2--];
+                maxValue -= interval;
+            }
+            p2 = p2*bins - 1;
+
+            interval /= bins;
+        }
+
+        bgr[k] = (outputMax - outputMin) * (bgr[k] - minValue) / (maxValue - minValue) + outputMin;
+    }
+
+    cv::merge(bgr, mat); //合并R、G、B三通道
+
+
+    QImage cc_img = cvMat2QImage(mat);   //Mat 转 QImage
+    return  cc_img;
+}
+/**************************************************************************************************************************/
+
+
 /*========================================SLOT=========================================*/
 //打开摄像头
 void Widget::doProcessOpenCam(){
@@ -191,6 +281,7 @@ void Widget::doProcessOpenCam(){
     ui->Bt_CamOpen->setEnabled(false);
     ui->Bt_SWB->setEnabled(false);
     ui->Bt_remove->setEnabled(true);
+    ui->Bt_CamClose->setEnabled(true);
 
     capTimer->start(1000.000/30);    //定时发送采集请求
 }
@@ -265,15 +356,15 @@ void Widget::doProcessSelectWB()
 //采集图片
 void Widget::doProcessCapture()
 {
-    emit SigToReadFrame(img);
+    emit SigToReadFrame();
 }
 
 //图片存储类型转换
-void Widget::doProcessDisplay(QImage img)
+void Widget::doProcessDisplay(QImage rd_img)
 {
     ui->Bt_ViewImg->setEnabled(true);
 
-    p_img = QPixmap::fromImage(img);  //QImage转化为QPixmap
+    p_img = QPixmap::fromImage(rd_img);  //QImage转化为QPixmap
 
     showTimer->start(1000.000/FPS); //开启显示定时器
 }
@@ -324,11 +415,6 @@ void Widget::doProcessViewImg()
     //停止后台采集
     capTimer->stop();
 
-    //格式化图片保存名称
-//    index++;
-//    char outfile[50];
-//    sprintf(outfile, "/app/cap_test%d.jpg", index);
-
     //构造带时间戳的图片名
     struct tm *ptr;
     time_t t;
@@ -349,15 +435,22 @@ void Widget::doProcessViewImg()
     sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
                         OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
 
-    pp_img = sp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
-    msgbox.setIconPixmap(pp_img);    //将图片显示在对话框中
+    //色彩矫正
+    QImage cal_img = wb_calibrate(sp_img);
+
+    QPixmap mmp_img = QPixmap::fromImage(cal_img);
+
+    pp_img = mmp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+
+    msgbox.setIconPixmap(pp_img);    //显示
+
     myMutex.unlock();  //解锁
 
     //保存
     if(msgbox.exec() == QMessageBox::Yes)
     {
         //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-        bool ret = sp_img.save(outfile);   //保存图片
+        bool ret = cal_img.save(outfile);   //保存图片
         if(!ret){
             ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
             ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
@@ -371,11 +464,9 @@ void Widget::doProcessViewImg()
     //尺寸测量
     if(msgbox.exec() == QMessageBox::Ok)
     {
-        Mat src,m_src;
-
-        QImage m_img = sp_img.toImage();  //QPixmap转QImage
-        src = QImage2cvMat(m_img);        //QImage 转 Mat
-        m_src = opencv_measure(src);             //尺寸测量
+        Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
+        cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
+        Mat m_src = opencv_measure(src);             //尺寸测量
         QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
         QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
 
@@ -393,8 +484,8 @@ void Widget::doProcessViewImg()
         //保存
         if(msg_measure.exec() == QMessageBox::Yes)
         {
-            QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-            bool ret = ss_img.save(outfile);   //保存图片
+            //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+            bool ret = ms_img.save(outfile);   //保存图片
             if(!ret){
                 ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
                 ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
@@ -406,6 +497,8 @@ void Widget::doProcessViewImg()
         }
 
      }
+
+
 
     //重启采集定时器
     capTimer->start(1000.000/30);
@@ -440,7 +533,7 @@ void Widget::doProcessCloseCam()
             stop_cap();   //失能视频流输出
             close_cam();  //关闭摄像头
 
-            ui->Bt_CamOpen->setEnabled(true);
+            //ui->Bt_CamOpen->setEnabled(true);
 //            qApp->quit(); //退出应用程序 (存在问题:执行后程序并未退出!!!)
             break;
         case QMessageBox::No:

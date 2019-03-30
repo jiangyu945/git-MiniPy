@@ -6,7 +6,7 @@
 void PaintText(Mat& img, char* text, Point origin)
 {
     int fontface = CV_FONT_HERSHEY_SIMPLEX;   //字体
-    double fontscale = 1.0;                   //尺寸因子，值越大文字越大
+    double fontscale = 1.5;                   //尺寸因子，值越大文字越大
     Scalar textcolor = Scalar(0, 0, 255);    //文本颜色
     int thickness = 4;  //线宽
     int linetype = 8;   //线型
@@ -19,7 +19,7 @@ void PaintText(Mat& img, char* text, Point origin)
     putText(img, text, origin, fontface, fontscale, textcolor, thickness, linetype);
 }
 
-Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
+Mat fineMinAreaRect(Mat &threshold_output, Mat &src)
 {
     bool flag = false;   //查找比例尺标志
     double  pp = 0.0;    //比例因子：每像素代表的实际物理尺寸
@@ -138,7 +138,7 @@ Mat& fineMinAreaRect(Mat &threshold_output, Mat &src)
     //imshow("测量结果", src);
 }
 
-Mat& opencv_measure(Mat& src)
+Mat opencv_measure(Mat& src)
 {
     Mat  src_gray, edge;
 

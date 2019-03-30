@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_workerThread_t {
-    QByteArrayData data[5];
-    char stringdata0[50];
+    QByteArrayData data[4];
+    char stringdata0[46];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,11 +32,10 @@ static const qt_meta_stringdata_workerThread_t qt_meta_stringdata_workerThread =
 QT_MOC_LITERAL(0, 0, 12), // "workerThread"
 QT_MOC_LITERAL(1, 13, 12), // "SigToDisplay"
 QT_MOC_LITERAL(2, 26, 0), // ""
-QT_MOC_LITERAL(3, 27, 3), // "img"
-QT_MOC_LITERAL(4, 31, 18) // "doProcessReadFrame"
+QT_MOC_LITERAL(3, 27, 18) // "doProcessReadFrame"
 
     },
-    "workerThread\0SigToDisplay\0\0img\0"
+    "workerThread\0SigToDisplay\0\0"
     "doProcessReadFrame"
 };
 #undef QT_MOC_LITERAL
@@ -58,13 +57,13 @@ static const uint qt_meta_data_workerThread[] = {
        1,    1,   24,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       4,    1,   27,    2, 0x0a /* Public */,
+       3,    0,   27,    2, 0x0a /* Public */,
 
  // signals: parameters
-    QMetaType::Void, QMetaType::QImage,    3,
+    QMetaType::Void, QMetaType::QImage,    2,
 
  // slots: parameters
-    QMetaType::Void, QMetaType::QImage,    3,
+    QMetaType::Void,
 
        0        // eod
 };
@@ -76,7 +75,7 @@ void workerThread::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->SigToDisplay((*reinterpret_cast< QImage(*)>(_a[1]))); break;
-        case 1: _t->doProcessReadFrame((*reinterpret_cast< QImage(*)>(_a[1]))); break;
+        case 1: _t->doProcessReadFrame(); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {

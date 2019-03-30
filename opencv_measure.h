@@ -10,8 +10,8 @@ using namespace cv;
 using namespace std;
 
 void PaintText(Mat& , char* , Point);
-Mat& fineMinAreaRect(Mat&, Mat&);
-Mat& opencv_measure(Mat&);
+Mat fineMinAreaRect(Mat&, Mat&);
+Mat opencv_measure(Mat&);
 
 
 

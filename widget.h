@@ -18,6 +18,9 @@
 
 #include "v4l2Cap.h"
 #include "workerthread.h"
+#include "opencv_measure.h"
+
+#define WB_VALUE  180.0f     //白平衡矫正值
 
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
@@ -45,12 +48,12 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
 signals:
-    void SigToReadFrame(QImage img);
+    void SigToReadFrame();
 
 public slots:
     void doProcessOpenCam();  // 打开摄像头
     void doProcessCapture();  // 采集图片
-    void doProcessDisplay(QImage img);  // 显示图片
+    void doProcessDisplay(QImage);  // 显示图片
     void doProcessViewImg();  // 预览图片
     void doProcessSelectWB(); // 白平衡模式选择
     void doProcessRemoveTfcard();  //移除TF卡
@@ -68,7 +71,7 @@ private:
     QWidget* mpShadeWindow3;  //遮罩窗口3
     QWidget* mpShadeWindow4;  //遮罩窗口4
 
-    QImage img;
+
     QPixmap p_img,sp_img,pp_img;
     QTimer *capTimer;  //采集控制定时器
     QTimer *showTimer; //刷新显示定时器

@@ -700,8 +700,10 @@ void process_img(void* addr,int length)
     size_jpg = length;
     memcpy(jpg_buf,addr,size_jpg);
 
+
     //YUYV转RGB888
-//    yuyv_to_rgb888((uchar*)addr,rgb888_buf,WIDTH,HEIGHT);
+    //yuyv_to_rgb888((uchar*)addr,rgb888_buf,WIDTH,HEIGHT);
+
 
 }
 

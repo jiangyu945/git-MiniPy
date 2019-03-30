@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_Widget_t {
-    QByteArrayData data[11];
-    char stringdata0[153];
+    QByteArrayData data[10];
+    char stringdata0[149];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,17 +32,16 @@ static const qt_meta_stringdata_Widget_t qt_meta_stringdata_Widget = {
 QT_MOC_LITERAL(0, 0, 6), // "Widget"
 QT_MOC_LITERAL(1, 7, 14), // "SigToReadFrame"
 QT_MOC_LITERAL(2, 22, 0), // ""
-QT_MOC_LITERAL(3, 23, 3), // "img"
-QT_MOC_LITERAL(4, 27, 16), // "doProcessOpenCam"
-QT_MOC_LITERAL(5, 44, 16), // "doProcessCapture"
-QT_MOC_LITERAL(6, 61, 16), // "doProcessDisplay"
-QT_MOC_LITERAL(7, 78, 16), // "doProcessViewImg"
-QT_MOC_LITERAL(8, 95, 17), // "doProcessSelectWB"
-QT_MOC_LITERAL(9, 113, 21), // "doProcessRemoveTfcard"
-QT_MOC_LITERAL(10, 135, 17) // "doProcessCloseCam"
+QT_MOC_LITERAL(3, 23, 16), // "doProcessOpenCam"
+QT_MOC_LITERAL(4, 40, 16), // "doProcessCapture"
+QT_MOC_LITERAL(5, 57, 16), // "doProcessDisplay"
+QT_MOC_LITERAL(6, 74, 16), // "doProcessViewImg"
+QT_MOC_LITERAL(7, 91, 17), // "doProcessSelectWB"
+QT_MOC_LITERAL(8, 109, 21), // "doProcessRemoveTfcard"
+QT_MOC_LITERAL(9, 131, 17) // "doProcessCloseCam"
 
     },
-    "Widget\0SigToReadFrame\0\0img\0doProcessOpenCam\0"
+    "Widget\0SigToReadFrame\0\0doProcessOpenCam\0"
     "doProcessCapture\0doProcessDisplay\0"
     "doProcessViewImg\0doProcessSelectWB\0"
     "doProcessRemoveTfcard\0doProcessCloseCam"
@@ -63,24 +62,24 @@ static const uint qt_meta_data_Widget[] = {
        1,       // signalCount
 
  // signals: name, argc, parameters, tag, flags
-       1,    1,   54,    2, 0x06 /* Public */,
+       1,    0,   54,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
-       4,    0,   57,    2, 0x0a /* Public */,
-       5,    0,   58,    2, 0x0a /* Public */,
-       6,    1,   59,    2, 0x0a /* Public */,
-       7,    0,   62,    2, 0x0a /* Public */,
-       8,    0,   63,    2, 0x0a /* Public */,
-       9,    0,   64,    2, 0x0a /* Public */,
-      10,    0,   65,    2, 0x0a /* Public */,
+       3,    0,   55,    2, 0x0a /* Public */,
+       4,    0,   56,    2, 0x0a /* Public */,
+       5,    1,   57,    2, 0x0a /* Public */,
+       6,    0,   60,    2, 0x0a /* Public */,
+       7,    0,   61,    2, 0x0a /* Public */,
+       8,    0,   62,    2, 0x0a /* Public */,
+       9,    0,   63,    2, 0x0a /* Public */,
 
  // signals: parameters
-    QMetaType::Void, QMetaType::QImage,    3,
+    QMetaType::Void,
 
  // slots: parameters
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::QImage,    3,
+    QMetaType::Void, QMetaType::QImage,    2,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -95,7 +94,7 @@ void Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Widget *_t = static_cast<Widget *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->SigToReadFrame((*reinterpret_cast< QImage(*)>(_a[1]))); break;
+        case 0: _t->SigToReadFrame(); break;
         case 1: _t->doProcessOpenCam(); break;
         case 2: _t->doProcessCapture(); break;
         case 3: _t->doProcessDisplay((*reinterpret_cast< QImage(*)>(_a[1]))); break;
@@ -109,7 +108,7 @@ void Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         int *result = reinterpret_cast<int *>(_a[0]);
         void **func = reinterpret_cast<void **>(_a[1]);
         {
-            typedef void (Widget::*_t)(QImage );
+            typedef void (Widget::*_t)();
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&Widget::SigToReadFrame)) {
                 *result = 0;
                 return;
@@ -155,9 +154,8 @@ int Widget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void Widget::SigToReadFrame(QImage _t1)
+void Widget::SigToReadFrame()
 {
-    void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };
-    QMetaObject::activate(this, &staticMetaObject, 0, _a);
+    QMetaObject::activate(this, &staticMetaObject, 0, Q_NULLPTR);
 }
 QT_END_MOC_NAMESPACE

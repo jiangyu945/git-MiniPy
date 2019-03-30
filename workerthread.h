@@ -12,6 +12,7 @@
 
 #include <QTime>
 
+
 class workerThread : public QObject
 {
     Q_OBJECT
@@ -19,10 +20,10 @@ public:
     explicit workerThread(QObject *parent = 0);
 
 signals:
-    void SigToDisplay(QImage img);
+    void SigToDisplay(QImage);
 
 public slots:
-    void doProcessReadFrame(QImage img);
+    void doProcessReadFrame();
 
 private:
     QTime tt;
