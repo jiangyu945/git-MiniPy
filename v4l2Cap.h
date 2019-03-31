@@ -36,9 +36,9 @@ extern "C" {
 #define  G_SATURATION       48                    //饱和度
 #define  G_HUE              0                     //色度
 #define  G_SHARPNESS        0                     //锐度
-#define  G_BACKLIGHT_COMP   56                    //背光补偿 56
+#define  G_BACKLIGHT_COMP   56                    //背光补偿
 #define  G_GAMMA            100                   //伽玛
-#define  G_EXPOSURE_TIME    156                   //曝光时间，即快门速度(10-2500),单位100us
+#define  G_EXPOSURE_TIME    300                   //曝光时间，即快门速度(10-2500),单位100us
 #define  G_GAIN             100                   //增益（80-176）
 
 #define  WIDTH    1920
@@ -51,15 +51,15 @@ typedef unsigned int  uint;
 int get_time_now();  //获取当前时间
 int usTimer(long);   //us定时器
 void yuyv_to_rgb888(uchar*,uchar*,uint,uint);  //yuyv转rgb888
-int open_cam();    //打开摄像头
-int get_cap_para(); //获取摄像头参数
-void set_cap_para(); //设置摄像头参数
-void set_cap_wb(int value); //设置白平衡
-void init_mmap(); //初始化内存映射
-void start_cap(); //使能视频流
-void epoll_cam(); //摄像头加入监听池
-void read_frame(); //获取一帧图像
-void process_img(void*,int length); //图像处理
+int open_cam();       //打开摄像头
+int get_cap_para();   //获取摄像头参数
+void set_cap_para();  //设置摄像头参数
+void set_cap_wb(int); //设置白平衡
+void init_mmap();     //初始化内存映射
+void start_cap();     //使能视频流
+void epoll_cam();     //摄像头加入监听池
+void read_frame();    //获取一帧图像
+void process_img(void*,int); //图像处理
 
 void stop_cap();  //失能视频流采集
 void close_cam(); //关闭摄像头

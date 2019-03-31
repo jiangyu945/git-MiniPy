@@ -239,7 +239,7 @@ int get_cap_para(){
 
 
     printf("【*********************获取白平衡色温：*****************************】\n");
-    ctrl.id= V4L2_CID_WHITE_BALANCE_TEMPERATURE;  //将白平衡设置为指定的开尔文色温
+    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;  //将白平衡设置为指定的开尔文色温
     if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -322,7 +322,7 @@ int get_cap_para(){
     printf(">>: 伽玛值: %d \n",ctrl.value);
     printf("\n");
 
-    printf("*************************获取曝光绝对值****************************\n"); //一般设置曝光是设置它
+    printf("*************************获取曝光绝对值（曝光时间）****************************\n"); //一般设置曝光是设置它
     ctrl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
     if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
     {
@@ -343,6 +343,16 @@ int get_cap_para(){
 //    printf(">: 光圈大小: %d\n",ctrl.value);
 //    printf("\n");
 
+//    printf("*************************获取焦距****************************\n");
+//    ctrl.id = V4L2_CID_FOCUS_ABSOLUTE;
+//    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf(">: 光圈大小: %d\n",ctrl.value);
+//    printf("\n");
+
     printf("***************************获取增益值************************\n");
     ctrl.id= V4L2_CID_GAIN;
     if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
@@ -352,54 +362,6 @@ int get_cap_para(){
     }
     printf(">>: 增益: %d \n",ctrl.value);
     printf("\n");
-
-
-#if 0
-//以下参数在该型号（双目122）摄像头，无法调节
-    printf("***************************获取增益值************************\n");
-    ctrl.id= V4L2_CID_GAIN;
-    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf(">>: 增益: %d \n",ctrl.value);
-    printf("\n");
-
-
-    printf("*************************获取曝光值*****************************\n");
-    //(注意：测试发现，在Linux下，V4L2_EXPOSURE_ATUO并不被Firmware认可，要设置自动曝光，需要设置为：V4L2_EXPOSURE_APERTURE_PRIORITY)
-    ctrl.id= V4L2_CID_EXPOSURE_AUTO ;
-    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf(">: 曝光值: %d\n",ctrl.value);
-    printf("\n");
-
-    printf("*************************获取曝光绝对值****************************\n"); //一般设置曝光是设置它
-    struct v4l2_control ctrl;
-    ctrl.id=V4L2_CID_EXPOSURE_ABSOLUTE;
-    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf(">: 曝光绝对值: %d\n",ctrl.value);
-    printf("\n");
-
-    printf("***************************获取曝光优先级************************\n");
-    struct v4l2_control ctrl;
-    ctrl.id= V4L2_CID_EXPOSURE_PRIORITY;
-    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf(">: 曝光优先级: %d \n",ctrl.value);
-    printf("\n");
-#endif
 
     return 0;
 
@@ -422,7 +384,7 @@ void set_cap_para()
     printf("\n");
 
     printf("【***********************设置帧率：******************************】\n");
-    Stream_Parm.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    Stream_Parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     Stream_Parm.parm.capture.timeperframe.denominator = G_CAP_FPS;
     Stream_Parm.parm.capture.timeperframe.numerator =1;
     if(ioctl(cam_fd,VIDIOC_S_PARM,&Stream_Parm)==-1)
@@ -432,15 +394,25 @@ void set_cap_para()
     }
     printf("\n");
 
-//    printf("【*********************设置白平衡色温：*****************************】\n");
-//    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-//    ctrl.value = WHITE_BALANCE_TEMPERATURE;
-//     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
-//    {
-//        perror("ioctl");
-//        exit(EXIT_FAILURE);
-//    }
-//    printf("\n");
+    printf("【**********************设置手动白平衡(/关闭自动白平衡)：******************************】\n");
+    ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+    ctrl.value =  0;
+    if(ioctl(cam_fd,VIDIOC_G_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
+
+    printf("【*********************设置白平衡色温：*****************************】\n");
+    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+    ctrl.value = G_WB_TEMPERATURE;
+    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+    {
+        perror("ioctl");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n");
 
     printf("【***********************设置亮度：******************************】\n");
     ctrl.id= V4L2_CID_BRIGHTNESS;
@@ -518,7 +490,7 @@ void set_cap_para()
     /***********设置手动曝光***************************/
     printf("【**********设置手动曝光**************************】\n");
     ctrl.id= V4L2_CID_EXPOSURE_AUTO;
-    ctrl.value=V4L2_EXPOSURE_MANUAL;   //手动曝光时间,手动光圈
+    ctrl.value = V4L2_EXPOSURE_MANUAL;   //手动曝光时间,手动光圈
     if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
     {
         perror("ioctl");
@@ -537,6 +509,39 @@ void set_cap_para()
     }
     printf("\n");
 
+//    /***********设置光圈大小***************************/
+//    printf("【***********设置光圈大小************************】\n");
+//    ctrl.id = V4L2_CID_IRIS_ABSOLUTE;
+//    ctrl.value = ;
+//    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf("\n");
+
+
+//    /***********设置对焦模式***************************/
+//    printf("【***********设置对焦模式***************************】\n");
+//    printf("1> 关闭自动对焦\n");
+//    ctrl.id= V4L2_CID_FOCUS_AUTO;
+//    ctrl.value= 0;
+//    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf("\n");
+
+//    printf("2> 设置焦点值\n");
+//    ctrl.id= V4L2_CID_FOCUS_ABSOLUTE;
+//    ctrl.value= val;  //val需填写
+//    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    printf("\n");
 
      /***************设置增益***************************/
      printf("【***************设置增益***************************】\n");
@@ -553,71 +558,6 @@ void set_cap_para()
     printf("【******************验证设置**********************】\n");
     printf("【******************验证设置**********************】\n");
 
-
-
-
-#if 0
-
-    /***********设置手动曝光***************************/
-    printf("【**********设置手动曝光**************************】\n");
-    ctrl.id= V4L2_CID_EXPOSURE_AUTO;
-    ctrl.value=V4L2_EXPOSURE_MANUAL;
-    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf("\n");
-
-    /***********设置曝光绝对值***************************/
-    printf("【***********设置曝光绝对值************************】\n");
-    ctrl.id= V4L2_CID_EXPOSURE_ABSOLUTE;
-    ctrl.value= value;  //val需填写
-    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf("\n");
-
-     /***********设置对焦模式***************************/
-    printf("【***********设置对焦模式***************************】\n");
-    printf("1> 关闭自动对焦\n");
-    ctrl.id= V4L2_CID_FOCUS_AUTO;
-    ctrl.value= 0;
-    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf("\n");
-
-    printf("2> 设置焦点值\n");
-    ctrl.id= V4L2_CID_FOCUS_ABSOLUTE;
-    ctrl.value= val;  //val需填写
-    if(ioctl(fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    printf("\n");
-
-
-    // /***************设置增益***************************/
-    // printf("【***************设置增益***************************】\n");
-    // ctrl.id=V4L2_CID_GAIN;
-    // if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    // {
-    //     perror("ioctl");
-    //     exit(EXIT_FAILURE);
-    // }
-    // printf("\n");
-
-
-
-    printf("**********************All Set Finished!!!*********************\n");
-
-#endif
 }
 
 //设置白平衡色温

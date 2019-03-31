@@ -36,10 +36,10 @@ void Widget::init()
 {
     //按钮状态初始化
     ui->Bt_CamOpen->setEnabled(true);    //打开
-    ui->Bt_SWB->setEnabled(false);       //WB选择
-    ui->Bt_ViewImg->setEnabled(false);   //预览
+    ui->Bt_View->setEnabled(false);      //预览
+    ui->Bt_RemoveTF->setEnabled(false);    //移除TF卡
     ui->Bt_CamClose->setEnabled(false);  //关闭
-    ui->Bt_remove->setEnabled(false);    //移除TF卡
+
 
 
     capTimer = new QTimer(this);
@@ -48,13 +48,13 @@ void Widget::init()
 
     //槽连接
     connect(ui->Bt_CamOpen,SIGNAL(clicked(bool)),this,SLOT(doProcessOpenCam()));  //打开摄像头
-    connect(ui->Bt_ViewImg,SIGNAL(clicked(bool)),this,SLOT(doProcessViewImg()));  //预览图片
+    connect(ui->Bt_View,SIGNAL(clicked(bool)),this,SLOT(doProcessViewImg()));  //预览图片
+    connect(ui->Bt_RemoveTF,SIGNAL(clicked(bool)),this,SLOT(doProcessRemoveTfcard()));  //移除TF卡
     connect(ui->Bt_CamClose,SIGNAL(clicked(bool)),this,SLOT(doProcessCloseCam())); //关闭摄像头,退出程序
     connect(capTimer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
 
-    connect(ui->Bt_SWB,SIGNAL(clicked(bool)),this,SLOT(doProcessSelectWB()));   //选择白平衡模式
-    connect(ui->Bt_remove,SIGNAL(clicked(bool)),this,SLOT(doProcessRemoveTfcard()));  //移除TF卡
+
 }
 
 //开启线程
@@ -84,8 +84,13 @@ void Widget::showTime()
     strftime(nowtime,sizeof(nowtime),"%Y/%m/%d_%H:%M:%S",ptr);
     nowtime[sizeof(nowtime)-1] = '\0';
 
-    ui->lineEdit_wbShow->setText(nowtime); //设置文本内容
-    ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
+    ui->lineEdit_TipShow->setText(nowtime); //设置文本内容
+    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+
+    //判断当前时间是否准确
+    if(!(nowtime[2]>49 || nowtime[3]>50)){  //49、50分别为“1”、“2”的ASCII码值
+        ui->Bt_CamOpen->setEnabled(false);
+    }
 }
 
 //Mat转QImage
@@ -266,9 +271,6 @@ void Widget::doProcessOpenCam(){
     //设置摄像头参数
     set_cap_para();
 
-    //显示初始白平衡模式
-    ui->lineEdit_wbShow->setText("Now WB Mode : Sunny"); //设置文本内容
-    ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
     //获取摄像头参数
     get_cap_para();
     //内存映射初始化
@@ -279,79 +281,78 @@ void Widget::doProcessOpenCam(){
     epoll_cam();
 
     ui->Bt_CamOpen->setEnabled(false);
-    ui->Bt_SWB->setEnabled(false);
-    ui->Bt_remove->setEnabled(true);
+    ui->Bt_RemoveTF->setEnabled(true);
     ui->Bt_CamClose->setEnabled(true);
 
     capTimer->start(1000.000/30);    //定时发送采集请求
 }
 
 //白平衡模式设置
-void Widget::doProcessSelectWB()
-{
+//void Widget::doProcessSelectWB()
+//{
 
-    QMessageBox msgbox(QMessageBox::NoIcon, NULL,"Please select white balance mode : ",
-                       QMessageBox::Yes | QMessageBox::YesAll | QMessageBox::Save |
-                       QMessageBox::Ok | QMessageBox::Open | QMessageBox::No |
-                       QMessageBox::Cancel);
-    msgbox.setButtonText(QMessageBox::Yes,"Mor1h");      //日出一小时  3500K
-    msgbox.setButtonText(QMessageBox::YesAll,"Mor2h");   //日出两小时  4700K
-    msgbox.setButtonText(QMessageBox::Save,"Cloudy");    //阴天       7000K
-    msgbox.setButtonText(QMessageBox::Ok,"Sunny");       //正午阳光    6000K
-    msgbox.setButtonText(QMessageBox::Open,"Tung");      //钨丝灯      3000K
-    msgbox.setButtonText(QMessageBox::No,"Flus");        //日光灯      6000K
-    msgbox.setButtonText(QMessageBox::Cancel,"Sunset");  //日落        2500K
-    msgbox.setDefaultButton(QMessageBox::Ok);
-    switch(msgbox.exec()){
-        case QMessageBox::Yes:
-            set_cap_wb(3500);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Morn1h"); //设置文本内容
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);  //居中对齐
-            break;
+//    QMessageBox msgbox(QMessageBox::NoIcon, NULL,"Please select white balance mode : ",
+//                       QMessageBox::Yes | QMessageBox::YesAll | QMessageBox::Save |
+//                       QMessageBox::Ok | QMessageBox::Open | QMessageBox::No |
+//                       QMessageBox::Cancel);
+//    msgbox.setButtonText(QMessageBox::Yes,"Mor1h");      //日出一小时  3500K
+//    msgbox.setButtonText(QMessageBox::YesAll,"Mor2h");   //日出两小时  4700K
+//    msgbox.setButtonText(QMessageBox::Save,"Cloudy");    //阴天       7000K
+//    msgbox.setButtonText(QMessageBox::Ok,"Sunny");       //正午阳光    6000K
+//    msgbox.setButtonText(QMessageBox::Open,"Tung");      //钨丝灯      3000K
+//    msgbox.setButtonText(QMessageBox::No,"Flus");        //日光灯      6000K
+//    msgbox.setButtonText(QMessageBox::Cancel,"Sunset");  //日落        2500K
+//    msgbox.setDefaultButton(QMessageBox::Ok);
+//    switch(msgbox.exec()){
+//        case QMessageBox::Yes:
+//            set_cap_wb(3500);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Morn1h"); //设置文本内容
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+//            break;
 
-        case QMessageBox::YesAll:
-            set_cap_wb(4700);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Morn2h");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::YesAll:
+//            set_cap_wb(4700);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Morn2h");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        case QMessageBox::Save:
-            set_cap_wb(7000);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Cloudy");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::Save:
+//            set_cap_wb(7000);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Cloudy");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        case QMessageBox::Ok:
-            set_cap_wb(6000);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Sunny");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::Ok:
+//            set_cap_wb(6000);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Sunny");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        case QMessageBox::Open:
-            set_cap_wb(3000);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Tungsten");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::Open:
+//            set_cap_wb(3000);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Tungsten");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        case QMessageBox::No:
-            set_cap_wb(6000);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Fluorescent");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::No:
+//            set_cap_wb(6000);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Fluorescent");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        case QMessageBox::Cancel:
-            set_cap_wb(2500);
-            ui->lineEdit_wbShow->setText("Now WB Mode : Sunset");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
-            break;
+//        case QMessageBox::Cancel:
+//            set_cap_wb(2500);
+//            ui->lineEdit_TipShow->setText("Now WB Mode : Sunset");
+//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+//            break;
 
-        default:
-            break;
-    }
+//        default:
+//            break;
+//    }
 
-    //获取摄像头参数
-    get_cap_para();
-}
+//    //获取摄像头参数
+//    get_cap_para();
+//}
 
 //采集图片
 void Widget::doProcessCapture()
@@ -362,7 +363,7 @@ void Widget::doProcessCapture()
 //图片存储类型转换
 void Widget::doProcessDisplay(QImage rd_img)
 {
-    ui->Bt_ViewImg->setEnabled(true);
+    ui->Bt_View->setEnabled(true);
 
     p_img = QPixmap::fromImage(rd_img);  //QImage转化为QPixmap
 
@@ -452,12 +453,12 @@ void Widget::doProcessViewImg()
         //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
         bool ret = cal_img.save(outfile);   //保存图片
         if(!ret){
-            ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            ui->lineEdit_TipShow->setText("Warning! Save Failed!!!");
+            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
         }
         else{
-            ui->lineEdit_wbShow->setText("Save succeed!");
-            ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+            ui->lineEdit_TipShow->setText("Save succeed!");
+            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
         }
     }
 
@@ -487,12 +488,12 @@ void Widget::doProcessViewImg()
             //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
             bool ret = ms_img.save(outfile);   //保存图片
             if(!ret){
-                ui->lineEdit_wbShow->setText("Warning! Save Failed!!!");
-                ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+                ui->lineEdit_TipShow->setText("Warning! Save Failed!!!");
+                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
             }
             else{
-                ui->lineEdit_wbShow->setText("Save succeed!");
-                ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+                ui->lineEdit_TipShow->setText("Save succeed!");
+                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
             }
         }
 
@@ -509,8 +510,9 @@ void Widget::doProcessRemoveTfcard()
 {
     int ret = system("umount /media/mmcblk1p1");
     if(ret != -1){
-        ui->lineEdit_wbShow->setText("Remove TF Card succeed!");
-        ui->lineEdit_wbShow->setAlignment(Qt::AlignCenter);
+        ui->lineEdit_TipShow->setText("Remove TF Card succeed!");
+        ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+        ui->Bt_RemoveTF->setEnabled(false);
     }
 
 }

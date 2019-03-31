@@ -47,6 +47,7 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
+
 signals:
     void SigToReadFrame();
 
@@ -55,7 +56,6 @@ public slots:
     void doProcessCapture();  // 采集图片
     void doProcessDisplay(QImage);  // 显示图片
     void doProcessViewImg();  // 预览图片
-    void doProcessSelectWB(); // 白平衡模式选择
     void doProcessRemoveTfcard();  //移除TF卡
 
     void doProcessCloseCam(); // 关闭摄像头

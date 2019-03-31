@@ -26,15 +26,14 @@ class Ui_Widget
 public:
     QPushButton *Bt_CamClose;
     QPushButton *Bt_CamOpen;
-    QPushButton *Bt_ViewImg;
+    QPushButton *Bt_RemoveTF;
     QFrame *line;
     QFrame *line_2;
     QFrame *line_3;
-    QPushButton *Bt_SWB;
+    QPushButton *Bt_View;
     QFrame *line_4;
-    QLineEdit *lineEdit_wbShow;
+    QLineEdit *lineEdit_TipShow;
     QFrame *line_5;
-    QPushButton *Bt_remove;
 
     void setupUi(QWidget *Widget)
     {
@@ -51,10 +50,10 @@ public:
         Bt_CamOpen->setGeometry(QRect(400, 0, 80, 62));
         Bt_CamOpen->setStyleSheet(QLatin1String("background-color: rgb(0, 255, 0);\n"
 "font: 18pt \"Sans Serif\";"));
-        Bt_ViewImg = new QPushButton(Widget);
-        Bt_ViewImg->setObjectName(QStringLiteral("Bt_ViewImg"));
-        Bt_ViewImg->setGeometry(QRect(400, 140, 80, 62));
-        Bt_ViewImg->setStyleSheet(QLatin1String("font: oblique 18pt \"Sans Serif\";\n"
+        Bt_RemoveTF = new QPushButton(Widget);
+        Bt_RemoveTF->setObjectName(QStringLiteral("Bt_RemoveTF"));
+        Bt_RemoveTF->setGeometry(QRect(400, 140, 80, 62));
+        Bt_RemoveTF->setStyleSheet(QLatin1String("font: oblique 15pt \"Sans Serif\";\n"
 "background-color: rgb(255, 255, 0);\n"
 ""));
         line = new QFrame(Widget);
@@ -72,10 +71,10 @@ public:
         line_3->setGeometry(QRect(390, 0, 10, 272));
         line_3->setFrameShape(QFrame::VLine);
         line_3->setFrameShadow(QFrame::Sunken);
-        Bt_SWB = new QPushButton(Widget);
-        Bt_SWB->setObjectName(QStringLiteral("Bt_SWB"));
-        Bt_SWB->setGeometry(QRect(400, 70, 80, 62));
-        Bt_SWB->setStyleSheet(QLatin1String("font: oblique 18pt \"Sans Serif\";\n"
+        Bt_View = new QPushButton(Widget);
+        Bt_View->setObjectName(QStringLiteral("Bt_View"));
+        Bt_View->setGeometry(QRect(400, 70, 80, 62));
+        Bt_View->setStyleSheet(QLatin1String("font: oblique 18pt \"Sans Serif\";\n"
 "background-color: rgb(0, 170, 127);\n"
 ""));
         line_4 = new QFrame(Widget);
@@ -83,10 +82,10 @@ public:
         line_4->setGeometry(QRect(400, 132, 80, 8));
         line_4->setFrameShape(QFrame::HLine);
         line_4->setFrameShadow(QFrame::Sunken);
-        lineEdit_wbShow = new QLineEdit(Widget);
-        lineEdit_wbShow->setObjectName(QStringLiteral("lineEdit_wbShow"));
-        lineEdit_wbShow->setGeometry(QRect(0, 0, 310, 28));
-        lineEdit_wbShow->setStyleSheet(QLatin1String("font: oblique 12pt \"Sans Serif\";\n"
+        lineEdit_TipShow = new QLineEdit(Widget);
+        lineEdit_TipShow->setObjectName(QStringLiteral("lineEdit_TipShow"));
+        lineEdit_TipShow->setGeometry(QRect(0, 0, 390, 28));
+        lineEdit_TipShow->setStyleSheet(QLatin1String("font: oblique 12pt \"Sans Serif\";\n"
 "background-color: rgb(187, 255, 235);\n"
 "color: rgb(29, 127, 255);"));
         line_5 = new QFrame(Widget);
@@ -94,11 +93,6 @@ public:
         line_5->setGeometry(QRect(0, 28, 390, 4));
         line_5->setFrameShape(QFrame::HLine);
         line_5->setFrameShadow(QFrame::Sunken);
-        Bt_remove = new QPushButton(Widget);
-        Bt_remove->setObjectName(QStringLiteral("Bt_remove"));
-        Bt_remove->setGeometry(QRect(310, 0, 80, 28));
-        Bt_remove->setStyleSheet(QLatin1String("background-color: rgb(255, 0, 0);\n"
-"font: 12pt \"Sans Serif\";"));
 
         retranslateUi(Widget);
 
@@ -110,10 +104,9 @@ public:
         Widget->setWindowTitle(QApplication::translate("Widget", "Widget", 0));
         Bt_CamClose->setText(QApplication::translate("Widget", "Close", 0));
         Bt_CamOpen->setText(QApplication::translate("Widget", "Open", 0));
-        Bt_ViewImg->setText(QApplication::translate("Widget", "View", 0));
-        Bt_SWB->setText(QApplication::translate("Widget", "SWB", 0));
-        lineEdit_wbShow->setText(QApplication::translate("Widget", "WB Mode Tip", 0));
-        Bt_remove->setText(QApplication::translate("Widget", "Remove", 0));
+        Bt_RemoveTF->setText(QApplication::translate("Widget", "Remove", 0));
+        Bt_View->setText(QApplication::translate("Widget", "View", 0));
+        lineEdit_TipShow->setText(QString());
     } // retranslateUi
 
 };
