@@ -20,11 +20,11 @@
 #include "workerthread.h"
 #include "opencv_measure.h"
 
-#define WB_VALUE  180.0f     //白平衡矫正值
+//#define CWB_FLAG  0      //是否进行白平衡矫正标志
 
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
-#define  SHOW_HEIGHT  240    //屏高(仅指可显示高度)
+#define  SHOW_HEIGHT  220    //屏高(仅指可显示高度)
 
 //画布起始点
 #define  PIX_X   0
@@ -33,8 +33,8 @@
 //目标索引框
 #define  OBJ_WIDTH    220
 #define  OBJ_HEIGHT   180
-#define  OBJ_X     85
-#define  OBJ_Y     62
+#define  OBJ_X     ((SHOW_WIDTH-OBJ_WIDTH)/2)
+#define  OBJ_Y     ((SHOW_HEIGHT-OBJ_HEIGHT)/2+30)
 
 namespace Ui {
 class Widget;
@@ -59,6 +59,9 @@ public slots:
     void doProcessRemoveTfcard();  //移除TF卡
 
     void doProcessCloseCam(); // 关闭摄像头
+    void setExposureValue(int);  //调节曝光时间
+
+    void doProcessCalibrateWB(); //自定义白平衡灰卡矫正
 
 
 protected:
@@ -81,10 +84,12 @@ private:
     workerThread* workerObj; //次线程工作对象
 
     QTime t;
+    bool cwb_flag;
 
     void init();    //初始化
     void startObjthread(); //开启多线程
     void showTime();    //日期显示
+    float getGrayPixel(QPixmap);
 };
 
 #endif // WIDGET_H

@@ -1,7 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-
+static float whitePixel = 180.0f;  //白色像素值
 QMutex myMutex;
 
 Widget::Widget(QWidget *parent) :
@@ -15,6 +15,8 @@ Widget::Widget(QWidget *parent) :
     mpShadeWindow2 = new QWidget(this); //遮罩窗口2
     mpShadeWindow3 = new QWidget(this); //遮罩窗口3
     mpShadeWindow4 = new QWidget(this); //遮罩窗口4
+
+    cwb_flag = false;
 
     init();  //初始化
     startObjthread(); //启动多线程
@@ -40,7 +42,11 @@ void Widget::init()
     ui->Bt_RemoveTF->setEnabled(false);    //移除TF卡
     ui->Bt_CamClose->setEnabled(false);  //关闭
 
-
+    //曝光调节滑动条
+    ui->ExposureSlider->setMinimum(0);     //设置滑动条控件的最小值
+    ui->ExposureSlider->setMaximum(600);   //设置滑动条控件的最大值
+    ui->ExposureSlider->setSingleStep(50); //设置步长
+    ui->ExposureSlider->setValue(300);     //设置滑动条控件的初始值
 
     capTimer = new QTimer(this);
     showTimer =new QTimer(this);
@@ -54,6 +60,8 @@ void Widget::init()
     connect(capTimer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
 
+    connect(ui->Bt_Cwb,SIGNAL(clicked(bool)),this,SLOT(doProcessCalibrateWB()));   //获取自定义白平衡矫正白色点的像素值
+    connect(ui->ExposureSlider, SIGNAL(valueChanged(int)), this, SLOT(setExposureValue(int)));   //当拖动滑动条并释放时，发出信号，调节曝光
 
 }
 
@@ -127,7 +135,7 @@ QImage cvMat2QImage(const cv::Mat& mat)
     }
     else if(mat.type() == CV_8UC4)
     {
-        qDebug() << "CV_8UC4";
+        //qDebug() << "CV_8UC4";
         // Copy input Mat
         const uchar *pSrc = (const uchar*)mat.data;
         // Create QImage with same dimensions as input Mat
@@ -136,7 +144,7 @@ QImage cvMat2QImage(const cv::Mat& mat)
     }
     else
     {
-        qDebug() << "ERROR: Mat could not be converted to QImage.";
+       // qDebug() << "ERROR: Mat could not be converted to QImage.";
         return QImage();
     }
 }
@@ -165,6 +173,53 @@ cv::Mat QImage2cvMat(QImage image)
     return mat;
 }
 
+float Widget::getGrayPixel(QPixmap sp_img)
+{
+    QImage c_img = sp_img.toImage();
+    Mat mat = QImage2cvMat(c_img);        //此处得到的Mat对象格式类型为CV_8UC4
+    cvtColor(mat,mat,CV_RGBA2RGB);
+
+    std::vector<Mat> imageRGB;
+
+    //RGB三通道分离
+    split(mat, imageRGB);
+
+    //求原始图像的RGB分量的均值
+    double R, G, B;
+    B = mean(imageRGB[0])[0];
+    G = mean(imageRGB[1])[0];
+    R = mean(imageRGB[2])[0];
+
+    //取灰度均值
+    float grayPix = (B + G + R) / 3;
+    if(grayPix > 127.5){
+        grayPix = 127.5;
+    }
+    printf("grayPix = %.2f\n",grayPix);
+
+    //调整RGB三个通道各自的值
+    imageRGB[0] = grayPix;
+    imageRGB[1] = grayPix;
+    imageRGB[2] = grayPix;
+
+    //RGB三通道图像合并
+    merge(imageRGB, mat);
+
+//    //对话框显示效果
+//    QMessageBox showbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Ok);
+//    QImage grayc_img = cvMat2QImage(mat);   //Mat 转 QImage
+//    QPixmap grayc_pix = QPixmap::fromImage(grayc_img);
+
+//    QPixmap scl_pix = grayc_pix.scaled(360,162,Qt::KeepAspectRatio);  //适度缩放,优化显示效果
+//    showbox.setIconPixmap(scl_pix);    //显示
+
+//    if( showbox.exec()== QMessageBox::Ok )
+//    {
+//    }
+
+    ui->lineEdit_TipShow->setText("白平衡矫正成功！"); //WB Calibrate succeed!
+    return grayPix;
+}
 
 //白平衡矫正
 QImage wb_calibrate(QPixmap sp_img)
@@ -172,13 +227,12 @@ QImage wb_calibrate(QPixmap sp_img)
     QImage c_img = sp_img.toImage();
     Mat mat = QImage2cvMat(c_img);        //此处得到的Mat对象格式类型为CV_8UC4
     cvtColor(mat,mat,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
-   // Mat wb_src(mat.size(),mat.type());
 
     /***********************注意：下面图像处理要求Mat格式类型必须为CV_8UC3!!!*********************/
     const float inputMin = 0.0f;
     const float inputMax = 255.0f;
     const float outputMin = 0.0f;
-    const float outputMax = WB_VALUE;
+    const float outputMax = whitePixel;
 
     std::vector<Mat> bgr;
     split(mat, bgr);        //分离B、G、R三通道
@@ -248,7 +302,7 @@ QImage wb_calibrate(QPixmap sp_img)
         bgr[k] = (outputMax - outputMin) * (bgr[k] - minValue) / (maxValue - minValue) + outputMin;
     }
 
-    cv::merge(bgr, mat); //合并R、G、B三通道
+    merge(bgr, mat); //合并R、G、B三通道
 
 
     QImage cc_img = cvMat2QImage(mat);   //Mat 转 QImage
@@ -264,7 +318,7 @@ void Widget::doProcessOpenCam(){
     int ret = open_cam();
     if(ret == -1){
         QMessageBox msg;
-        msg.about(NULL,"Error","Open Camera Failed!");
+        msg.about(NULL,"错误","打开摄像头失败! 请检查摄像头是否连接正确！");
         return;
     }
 
@@ -285,6 +339,29 @@ void Widget::doProcessOpenCam(){
     ui->Bt_CamClose->setEnabled(true);
 
     capTimer->start(1000.000/30);    //定时发送采集请求
+}
+
+
+//自定义白平衡灰卡矫正
+void Widget::doProcessCalibrateWB()
+{
+    QMutexLocker locker(&myMutex); //加锁
+    QPixmap cwb_pix = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
+               OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
+    float grayPixel = getGrayPixel(cwb_pix);  //获取灰色像素值
+    whitePixel = 2*grayPixel;
+
+    cwb_flag = true;
+}
+
+//调节曝光时间
+void Widget::setExposureValue(int value)
+{
+    int ex_value = ui->ExposureSlider->value();
+    setExposureTime(ex_value);
+    QString s_value = QString::number(ex_value, 10);  //int转string,10代表十进制
+    QString str = "曝光值:  ";  //Exposure Value
+    ui->lineEdit_TipShow->setText(str.append(s_value));
 }
 
 //白平衡模式设置
@@ -393,7 +470,7 @@ void Widget::paintEvent(QPaintEvent *)
     //开启四个遮罩窗口
     QString str("QWidget{background-color:rgba(0,0,0,0.7);}");  //透明度0-1
     mpShadeWindow1->setStyleSheet(str);
-    mpShadeWindow1->setGeometry(0, 28, 390, OBJ_Y-28);
+    mpShadeWindow1->setGeometry(0, 28, SHOW_WIDTH, OBJ_Y-28);
     //mpShadeWindow->setWindowOpacity(0.6);
     mpShadeWindow1->show();
 
@@ -402,7 +479,7 @@ void Widget::paintEvent(QPaintEvent *)
     mpShadeWindow2->show();
 
     mpShadeWindow3->setStyleSheet(str);
-    mpShadeWindow3->setGeometry(0, OBJ_Y+OBJ_HEIGHT, 390, OBJ_Y-28);
+    mpShadeWindow3->setGeometry(0, OBJ_Y+OBJ_HEIGHT, SHOW_WIDTH, OBJ_Y-28);
     mpShadeWindow3->show();
 
     mpShadeWindow4->setStyleSheet(str);
@@ -425,81 +502,112 @@ void Widget::doProcessViewImg()
     strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
     strcat(outfile,".jpg");
 
-    //预览对话框
-    QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
-    msgbox.setButtonText(QMessageBox::Yes,"Save");     //保存
-    msgbox.setButtonText(QMessageBox::Ok,"Measure");   //测量
-    msgbox.setButtonText(QMessageBox::No,"Cancel");    //取消
-    msgbox.setDefaultButton(QMessageBox::No);
+    //未进行色彩矫正
+    if(!cwb_flag){
+        //预览对话框
+        QMessageBox noCwbBox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No);
+        noCwbBox.setButtonText(QMessageBox::Yes,"保存");     //保存
+        noCwbBox.setButtonText(QMessageBox::No,"取消");    //取消
+        noCwbBox.setDefaultButton(QMessageBox::No);
 
-    myMutex.lock();  //加锁
-    sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
-                        OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
+        myMutex.lock();  //加锁
+        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
+                            OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
 
-    //色彩矫正
-    QImage cal_img = wb_calibrate(sp_img);
+        pp_img = sp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+        noCwbBox.setIconPixmap(pp_img);    //显示
 
-    QPixmap mmp_img = QPixmap::fromImage(cal_img);
-
-    pp_img = mmp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
-
-    msgbox.setIconPixmap(pp_img);    //显示
-
-    myMutex.unlock();  //解锁
-
-    //保存
-    if(msgbox.exec() == QMessageBox::Yes)
-    {
-        //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-        bool ret = cal_img.save(outfile);   //保存图片
-        if(!ret){
-            ui->lineEdit_TipShow->setText("Warning! Save Failed!!!");
-            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-        }
-        else{
-            ui->lineEdit_TipShow->setText("Save succeed!");
-            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-        }
-    }
-
-    //尺寸测量
-    if(msgbox.exec() == QMessageBox::Ok)
-    {
-        Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
-        cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
-        Mat m_src = opencv_measure(src);             //尺寸测量
-        QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
-        QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
-
-
-        //显示
-        QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
-        msg_measure.setButtonText(QMessageBox::Yes,"Save");    //保存
-        msg_measure.setButtonText(QMessageBox::Ok,"Cancel");   //取消
-
-        //msg_measure.setGeometry(0,32,340,240);
-
-        QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果 360 222
-        msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
-
-        //保存
-        if(msg_measure.exec() == QMessageBox::Yes)
+        myMutex.unlock();  //解锁
+        //保存myMutex.unlock();  //解锁
+        if(noCwbBox.exec() == QMessageBox::Yes)
         {
-            //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-            bool ret = ms_img.save(outfile);   //保存图片
+            //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+            bool ret = sp_img.save(outfile);   //保存图片
             if(!ret){
-                ui->lineEdit_TipShow->setText("Warning! Save Failed!!!");
+                ui->lineEdit_TipShow->setText("警告！ 保存失败！！！"); //Warning! Save Failed!!!
                 ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
             }
             else{
-                ui->lineEdit_TipShow->setText("Save succeed!");
+                ui->lineEdit_TipShow->setText("图片保存成功");  //Save succeed!
+                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+            }
+        }
+    }
+
+    //已进行色彩矫正
+    else{
+        //预览对话框
+        QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
+        msgbox.setButtonText(QMessageBox::Yes,"保存");     //保存
+        msgbox.setButtonText(QMessageBox::Ok,"测量");   //测量
+        msgbox.setButtonText(QMessageBox::No,"取消");    //取消
+        msgbox.setDefaultButton(QMessageBox::No);
+
+        myMutex.lock();  //加锁
+        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
+                            OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
+        //色彩矫正
+        QImage cal_img = wb_calibrate(sp_img);
+        QPixmap mmp_img = QPixmap::fromImage(cal_img);
+
+        pp_img = mmp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+
+        msgbox.setIconPixmap(pp_img);    //显示
+
+        myMutex.unlock();  //解锁
+
+        //保存
+        if(msgbox.exec() == QMessageBox::Yes)
+        {
+            //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+            bool ret = cal_img.save(outfile);   //保存图片
+            if(!ret){
+                ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
+                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+            }
+            else{
+                ui->lineEdit_TipShow->setText("保存成功！");
                 ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
             }
         }
 
-     }
+        //尺寸测量
+        if(msgbox.exec() == QMessageBox::Ok)
+        {
+            Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
+            cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
+            Mat m_src = opencv_measure(src);             //尺寸测量
+            QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
+            QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
 
 
+            //显示
+            QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
+            msg_measure.setButtonText(QMessageBox::Yes,"保存");    //保存
+            msg_measure.setButtonText(QMessageBox::Ok,"取消");   //取消
+
+            //msg_measure.setGeometry(0,32,340,240);
+
+            QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果 360 222
+            msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
+
+            //保存
+            if(msg_measure.exec() == QMessageBox::Yes)
+            {
+                //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+                bool ret = ms_img.save(outfile);   //保存图片
+                if(!ret){
+                    ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
+                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                }
+                else{
+                    ui->lineEdit_TipShow->setText("图片保存成功！");
+                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                }
+            }
+
+         }
+    }
 
     //重启采集定时器
     capTimer->start(1000.000/30);
@@ -510,7 +618,7 @@ void Widget::doProcessRemoveTfcard()
 {
     int ret = system("umount /media/mmcblk1p1");
     if(ret != -1){
-        ui->lineEdit_TipShow->setText("Remove TF Card succeed!");
+        ui->lineEdit_TipShow->setText("移除TF卡成功！");  //Remove TF Card succeed!
         ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
         ui->Bt_RemoveTF->setEnabled(false);
     }
@@ -522,9 +630,11 @@ void Widget::doProcessCloseCam()
 {
     //关闭对话框
     QMessageBox quitMsg;
-    quitMsg.setText("Exit tip");
-    quitMsg.setInformativeText("Do you really want exit ?");
+    quitMsg.setText("关闭提示"); //Exit tip
+    quitMsg.setInformativeText("确认退出？");  //Do you really want exit ?
     quitMsg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    quitMsg.setButtonText(QMessageBox::Yes,"是");    //保存
+    quitMsg.setButtonText(QMessageBox::No,"否");   //取消
     quitMsg.setDefaultButton(QMessageBox::Yes);
     int ret = quitMsg.exec();
     switch(ret){

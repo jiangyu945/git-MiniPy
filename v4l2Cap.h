@@ -26,6 +26,14 @@
 extern "C" {
 #endif
 
+#define DEBUG         //预定义调试宏
+#ifdef DEBUG          //封装打印函数
+        #define PRINT (printf("%s %s %d: ",__FILE__,__FUNCTION__,__LINE__),printf)
+#else
+        #define PRINT
+#endif
+
+
 #define  DEV_NAME  "/dev/video4"     //设备号video0,video5
 
 #define  G_PIX_FORMAT       V4L2_PIX_FMT_MJPEG    //采集格式：V4L2_PIX_FMT_MJPEG或V4L2_PIX_FMT_YUYV
@@ -55,6 +63,7 @@ int open_cam();       //打开摄像头
 int get_cap_para();   //获取摄像头参数
 void set_cap_para();  //设置摄像头参数
 void set_cap_wb(int); //设置白平衡
+void setExposureTime(int); //设置曝光时间
 void init_mmap();     //初始化内存映射
 void start_cap();     //使能视频流
 void epoll_cam();     //摄像头加入监听池
