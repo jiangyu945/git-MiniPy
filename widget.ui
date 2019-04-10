@@ -24,7 +24,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">font: 18pt &quot;Sans Serif&quot;;
-background-color: rgb(255, 89, 60);</string>
+background-color: rgb(159, 3, 5);</string>
    </property>
    <property name="text">
     <string>关闭</string>
@@ -128,14 +128,14 @@ background-color: rgb(0, 170, 127);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>320</width>
-     <height>28</height>
+     <width>390</width>
+     <height>38</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">font: oblique 12pt &quot;Sans Serif&quot;;
-background-color: rgb(187, 255, 235);
-color: rgb(29, 127, 255);</string>
+    <string notr="true">font: oblique 10pt &quot;Sans Serif&quot;;
+background-color: rgb(169, 166, 255);
+color: rgb(83, 83, 83);</string>
    </property>
    <property name="text">
     <string/>
@@ -145,9 +145,9 @@ color: rgb(29, 127, 255);</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>252</y>
+     <y>232</y>
      <width>390</width>
-     <height>20</height>
+     <height>40</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -260,9 +260,9 @@ border-radius: 4px;
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>28</y>
+     <y>38</y>
      <width>390</width>
-     <height>4</height>
+     <height>14</height>
     </rect>
    </property>
    <property name="orientation">
@@ -272,31 +272,103 @@ border-radius: 4px;
   <widget class="QPushButton" name="Bt_Cwb">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>0</y>
-     <width>60</width>
-     <height>28</height>
+     <x>340</x>
+     <y>182</y>
+     <width>50</width>
+     <height>50</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">
-background-color: rgb(255, 161, 114);</string>
+    <string notr="true">font: oblique 10pt &quot;Sans Serif&quot;;
+background-color: rgb(75, 75, 79);
+color: rgb(255, 254, 252);</string>
    </property>
    <property name="text">
     <string>白平衡</string>
    </property>
   </widget>
-  <widget class="Line" name="line_6">
+  <widget class="QPushButton" name="Bt_DrawDivLine">
    <property name="geometry">
     <rect>
-     <x>320</x>
-     <y>0</y>
+     <x>340</x>
+     <y>52</y>
+     <width>50</width>
+     <height>50</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: oblique 13pt &quot;Sans Serif&quot;;
+background-color: rgb(162, 108, 162);
+color: rgb(84, 87, 255);</string>
+   </property>
+   <property name="text">
+    <string>测量</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_8">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>52</y>
      <width>10</width>
-     <height>28</height>
+     <height>180</height>
     </rect>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_9">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>52</y>
+     <width>10</width>
+     <height>180</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_6">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>102</y>
+     <width>50</width>
+     <height>10</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QDial" name="dial_Time">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>112</y>
+     <width>50</width>
+     <height>60</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(181, 158, 255);
+color: rgb(142, 212, 255);</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_7">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>172</y>
+     <width>50</width>
+     <height>10</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
    </property>
   </widget>
  </widget>

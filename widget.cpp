@@ -1,7 +1,7 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-static float whitePixel = 180.0f;  //白色像素值
+static float whitePixel = 255.0f;  //白色像素值
 QMutex myMutex;
 
 Widget::Widget(QWidget *parent) :
@@ -17,6 +17,7 @@ Widget::Widget(QWidget *parent) :
     mpShadeWindow4 = new QWidget(this); //遮罩窗口4
 
     cwb_flag = false;
+    line_flag = false;
 
     init();  //初始化
     startObjthread(); //启动多线程
@@ -60,6 +61,7 @@ void Widget::init()
     connect(capTimer,SIGNAL(timeout()),this,SLOT(doProcessCapture()));    //利用定时器超时控制采集频率
     connect(showTimer,SIGNAL(timeout()),this,SLOT(update()));    //定时刷新显示,update()触发painter刷新画面
 
+    connect(ui->Bt_DrawDivLine,SIGNAL(clicked(bool)),this,SLOT(doDrawDivLine()));  //画测量分界线
     connect(ui->Bt_Cwb,SIGNAL(clicked(bool)),this,SLOT(doProcessCalibrateWB()));   //获取自定义白平衡矫正白色点的像素值
     connect(ui->ExposureSlider, SIGNAL(valueChanged(int)), this, SLOT(setExposureValue(int)));   //当拖动滑动条并释放时，发出信号，调节曝光
 
@@ -195,7 +197,7 @@ float Widget::getGrayPixel(QPixmap sp_img)
     if(grayPix > 127.5){
         grayPix = 127.5;
     }
-    printf("grayPix = %.2f\n",grayPix);
+   // printf("grayPix = %.2f\n",grayPix);
 
     //调整RGB三个通道各自的值
     imageRGB[0] = grayPix;
@@ -216,8 +218,8 @@ float Widget::getGrayPixel(QPixmap sp_img)
 //    if( showbox.exec()== QMessageBox::Ok )
 //    {
 //    }
-
-    ui->lineEdit_TipShow->setText("白平衡矫正成功！"); //WB Calibrate succeed!
+    QString data = QString("白平衡矫正成功！ 灰度值: %1").arg(grayPix); //WB Calibrate succeed!
+    ui->lineEdit_TipShow->setText(data);
     return grayPix;
 }
 
@@ -462,29 +464,37 @@ void Widget::paintEvent(QPaintEvent *)
     mypainter.setPen(pen);
     mypainter.drawRect(OBJ_X,OBJ_Y,OBJ_WIDTH,OBJ_HEIGHT);
 
-    //画分界线(1/3)
-    QPen penMid(QPen(Qt::red,2,Qt::DashDotDotLine)); //设置画笔形式
-    mypainter.setPen(penMid);
-    mypainter.drawLine(OBJ_X+OBJ_WIDTH/3,OBJ_Y,OBJ_X+OBJ_WIDTH/3,OBJ_Y+OBJ_HEIGHT);
+    if(line_flag){
+        //画分界线(1/3)
+        QPen penMid(QPen(Qt::red,2,Qt::DashDotDotLine)); //设置画笔形式
+        mypainter.setPen(penMid);
+        mypainter.drawLine(OBJ_X+OBJ_WIDTH/3,OBJ_Y,OBJ_X+OBJ_WIDTH/3,OBJ_Y+OBJ_HEIGHT);
+    }
+
 
     //开启四个遮罩窗口
-    QString str("QWidget{background-color:rgba(0,0,0,0.7);}");  //透明度0-1
+    QString str("QWidget{background-color:rgba(0,0,0,0.6);}");  //透明度0-1
     mpShadeWindow1->setStyleSheet(str);
-    mpShadeWindow1->setGeometry(0, 28, SHOW_WIDTH, OBJ_Y-28);
+    mpShadeWindow1->setGeometry(PIX_X, PIX_Y, SHOW_WIDTH, (SHOW_HEIGHT-OBJ_HEIGHT)/2);
     //mpShadeWindow->setWindowOpacity(0.6);
     mpShadeWindow1->show();
 
     mpShadeWindow2->setStyleSheet(str);
-    mpShadeWindow2->setGeometry(0, OBJ_Y, OBJ_X, OBJ_HEIGHT);
+    mpShadeWindow2->setGeometry(PIX_X, PIX_Y+SHOW_HEIGHT-(SHOW_HEIGHT-OBJ_HEIGHT)/2, SHOW_WIDTH, (SHOW_HEIGHT-OBJ_HEIGHT)/2);
     mpShadeWindow2->show();
 
     mpShadeWindow3->setStyleSheet(str);
-    mpShadeWindow3->setGeometry(0, OBJ_Y+OBJ_HEIGHT, SHOW_WIDTH, OBJ_Y-28);
+    mpShadeWindow3->setGeometry(PIX_X, PIX_Y+(SHOW_HEIGHT-OBJ_HEIGHT)/2, (SHOW_WIDTH-OBJ_WIDTH)/2, OBJ_HEIGHT);
     mpShadeWindow3->show();
 
     mpShadeWindow4->setStyleSheet(str);
-    mpShadeWindow4->setGeometry(OBJ_X+OBJ_WIDTH, OBJ_Y, OBJ_X, OBJ_HEIGHT);
+    mpShadeWindow4->setGeometry(PIX_X+SHOW_WIDTH-(SHOW_WIDTH-OBJ_WIDTH)/2, PIX_Y+(SHOW_HEIGHT-OBJ_HEIGHT)/2, (SHOW_WIDTH-OBJ_WIDTH)/2, OBJ_HEIGHT);
     mpShadeWindow4->show();
+}
+
+void Widget::doDrawDivLine()
+{
+    line_flag = !line_flag;
 }
 
 //预览并保存图片
@@ -514,7 +524,7 @@ void Widget::doProcessViewImg()
         sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
                             OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
 
-        pp_img = sp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+        pp_img = sp_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果
         noCwbBox.setIconPixmap(pp_img);    //显示
 
         myMutex.unlock();  //解锁
@@ -550,7 +560,7 @@ void Widget::doProcessViewImg()
         QImage cal_img = wb_calibrate(sp_img);
         QPixmap mmp_img = QPixmap::fromImage(cal_img);
 
-        pp_img = mmp_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果
+        pp_img = mmp_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果
 
         msgbox.setIconPixmap(pp_img);    //显示
 
@@ -588,7 +598,7 @@ void Widget::doProcessViewImg()
 
             //msg_measure.setGeometry(0,32,340,240);
 
-            QPixmap mm_img = ms_img.scaled(360,222,Qt::IgnoreAspectRatio);  //适度缩放,优化显示效果 360 222
+            QPixmap mm_img = ms_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果 360 222
             msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
 
             //保存
@@ -646,7 +656,7 @@ void Widget::doProcessCloseCam()
             close_cam();  //关闭摄像头
 
             //ui->Bt_CamOpen->setEnabled(true);
-//            qApp->quit(); //退出应用程序 (存在问题:执行后程序并未退出!!!)
+            //qApp->quit(); //退出应用程序 (存在问题:执行后程序并未退出!!!)
             break;
         case QMessageBox::No:
             break;

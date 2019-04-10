@@ -20,21 +20,20 @@
 #include "workerthread.h"
 #include "opencv_measure.h"
 
-//#define CWB_FLAG  0      //是否进行白平衡矫正标志
-
 #define    FPS    30         //帧率
-#define  SHOW_WIDTH   390    //屏宽(仅指可显示宽度)
-#define  SHOW_HEIGHT  220    //屏高(仅指可显示高度)
+#define  SHOW_WIDTH   320    //屏宽(仅指可显示宽度)
+#define  SHOW_HEIGHT  180    //屏高(仅指可显示高度)
+
+#define  OBJ_WIDTH    160    //索引框宽度
+#define  OBJ_HEIGHT   140    //索引框高度
 
 //画布起始点
-#define  PIX_X   0
-#define  PIX_Y   32
+#define  PIX_X   10
+#define  PIX_Y   52
 
-//目标索引框
-#define  OBJ_WIDTH    220
-#define  OBJ_HEIGHT   180
-#define  OBJ_X     ((SHOW_WIDTH-OBJ_WIDTH)/2)
-#define  OBJ_Y     ((SHOW_HEIGHT-OBJ_HEIGHT)/2+30)
+//索引框起点
+#define  OBJ_X     ((SHOW_WIDTH-OBJ_WIDTH)/2+PIX_X)
+#define  OBJ_Y     ((SHOW_HEIGHT-OBJ_HEIGHT)/2+PIX_Y)
 
 namespace Ui {
 class Widget;
@@ -55,10 +54,11 @@ public slots:
     void doProcessOpenCam();  // 打开摄像头
     void doProcessCapture();  // 采集图片
     void doProcessDisplay(QImage);  // 显示图片
-    void doProcessViewImg();  // 预览图片
-    void doProcessRemoveTfcard();  //移除TF卡
+    void doProcessViewImg();        //预览图片
+    void doProcessRemoveTfcard();   //移除TF卡
 
-    void doProcessCloseCam(); // 关闭摄像头
+    void doProcessCloseCam();    //关闭摄像头
+    void doDrawDivLine();        //画测量分界线
     void setExposureValue(int);  //调节曝光时间
 
     void doProcessCalibrateWB(); //自定义白平衡灰卡矫正
@@ -84,12 +84,13 @@ private:
     workerThread* workerObj; //次线程工作对象
 
     QTime t;
-    bool cwb_flag;
+    bool cwb_flag;  //白平衡矫正标志
+    bool line_flag; //尺寸测量分界线
 
-    void init();    //初始化
-    void startObjthread(); //开启多线程
-    void showTime();    //日期显示
-    float getGrayPixel(QPixmap);
+    void init();            //初始化
+    void startObjthread();  //开启多线程
+    void showTime();        //日期显示
+    float getGrayPixel(QPixmap);  //获取灰度值
 };
 
 #endif // WIDGET_H

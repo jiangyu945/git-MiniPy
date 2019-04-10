@@ -404,15 +404,15 @@ void set_cap_para()
     }
     PRINT("\n");
 
-    PRINT("【*********************设置白平衡色温：*****************************】\n");
-    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    ctrl.value = G_WB_TEMPERATURE;
-    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
-    {
-        perror("ioctl");
-        exit(EXIT_FAILURE);
-    }
-    PRINT("\n");
+//    PRINT("【*********************设置白平衡色温：*****************************】\n");
+//    ctrl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+//    ctrl.value = G_WB_TEMPERATURE;
+//    if(ioctl(cam_fd,VIDIOC_S_CTRL,&ctrl)==-1)
+//    {
+//        perror("ioctl");
+//        exit(EXIT_FAILURE);
+//    }
+//    PRINT("\n");
 
     PRINT("【***********************设置亮度：******************************】\n");
     ctrl.id= V4L2_CID_BRIGHTNESS;

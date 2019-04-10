@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QDial>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLineEdit>
@@ -37,7 +38,12 @@ public:
     QFrame *line_3;
     QFrame *line_5;
     QPushButton *Bt_Cwb;
+    QPushButton *Bt_DrawDivLine;
+    QFrame *line_8;
+    QFrame *line_9;
     QFrame *line_6;
+    QDial *dial_Time;
+    QFrame *line_7;
 
     void setupUi(QWidget *Widget)
     {
@@ -48,7 +54,7 @@ public:
         Bt_CamClose->setObjectName(QStringLiteral("Bt_CamClose"));
         Bt_CamClose->setGeometry(QRect(400, 210, 80, 62));
         Bt_CamClose->setStyleSheet(QLatin1String("font: 18pt \"Sans Serif\";\n"
-"background-color: rgb(255, 89, 60);"));
+"background-color: rgb(159, 3, 5);"));
         Bt_CamOpen = new QPushButton(Widget);
         Bt_CamOpen->setObjectName(QStringLiteral("Bt_CamOpen"));
         Bt_CamOpen->setGeometry(QRect(400, 0, 80, 62));
@@ -84,13 +90,13 @@ public:
         line_4->setFrameShadow(QFrame::Sunken);
         lineEdit_TipShow = new QLineEdit(Widget);
         lineEdit_TipShow->setObjectName(QStringLiteral("lineEdit_TipShow"));
-        lineEdit_TipShow->setGeometry(QRect(0, 0, 320, 28));
-        lineEdit_TipShow->setStyleSheet(QLatin1String("font: oblique 12pt \"Sans Serif\";\n"
-"background-color: rgb(187, 255, 235);\n"
-"color: rgb(29, 127, 255);"));
+        lineEdit_TipShow->setGeometry(QRect(0, 0, 390, 38));
+        lineEdit_TipShow->setStyleSheet(QLatin1String("font: oblique 10pt \"Sans Serif\";\n"
+"background-color: rgb(169, 166, 255);\n"
+"color: rgb(83, 83, 83);"));
         ExposureSlider = new QSlider(Widget);
         ExposureSlider->setObjectName(QStringLiteral("ExposureSlider"));
-        ExposureSlider->setGeometry(QRect(0, 252, 390, 20));
+        ExposureSlider->setGeometry(QRect(0, 232, 390, 40));
         ExposureSlider->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
 " \n"
 "border: 0px solid #bbb;\n"
@@ -187,19 +193,46 @@ public:
         line_3->setFrameShadow(QFrame::Sunken);
         line_5 = new QFrame(Widget);
         line_5->setObjectName(QStringLiteral("line_5"));
-        line_5->setGeometry(QRect(0, 28, 390, 4));
+        line_5->setGeometry(QRect(0, 38, 390, 14));
         line_5->setFrameShape(QFrame::HLine);
         line_5->setFrameShadow(QFrame::Sunken);
         Bt_Cwb = new QPushButton(Widget);
         Bt_Cwb->setObjectName(QStringLiteral("Bt_Cwb"));
-        Bt_Cwb->setGeometry(QRect(330, 0, 60, 28));
-        Bt_Cwb->setStyleSheet(QLatin1String("\n"
-"background-color: rgb(255, 161, 114);"));
+        Bt_Cwb->setGeometry(QRect(340, 182, 50, 50));
+        Bt_Cwb->setStyleSheet(QLatin1String("font: oblique 10pt \"Sans Serif\";\n"
+"background-color: rgb(75, 75, 79);\n"
+"color: rgb(255, 254, 252);"));
+        Bt_DrawDivLine = new QPushButton(Widget);
+        Bt_DrawDivLine->setObjectName(QStringLiteral("Bt_DrawDivLine"));
+        Bt_DrawDivLine->setGeometry(QRect(340, 52, 50, 50));
+        Bt_DrawDivLine->setStyleSheet(QLatin1String("font: oblique 13pt \"Sans Serif\";\n"
+"background-color: rgb(162, 108, 162);\n"
+"color: rgb(84, 87, 255);"));
+        line_8 = new QFrame(Widget);
+        line_8->setObjectName(QStringLiteral("line_8"));
+        line_8->setGeometry(QRect(0, 52, 10, 180));
+        line_8->setFrameShape(QFrame::VLine);
+        line_8->setFrameShadow(QFrame::Sunken);
+        line_9 = new QFrame(Widget);
+        line_9->setObjectName(QStringLiteral("line_9"));
+        line_9->setGeometry(QRect(330, 52, 10, 180));
+        line_9->setFrameShape(QFrame::VLine);
+        line_9->setFrameShadow(QFrame::Sunken);
         line_6 = new QFrame(Widget);
         line_6->setObjectName(QStringLiteral("line_6"));
-        line_6->setGeometry(QRect(320, 0, 10, 28));
-        line_6->setFrameShape(QFrame::VLine);
+        line_6->setGeometry(QRect(340, 102, 50, 10));
+        line_6->setFrameShape(QFrame::HLine);
         line_6->setFrameShadow(QFrame::Sunken);
+        dial_Time = new QDial(Widget);
+        dial_Time->setObjectName(QStringLiteral("dial_Time"));
+        dial_Time->setGeometry(QRect(340, 112, 50, 60));
+        dial_Time->setStyleSheet(QLatin1String("background-color: rgb(181, 158, 255);\n"
+"color: rgb(142, 212, 255);"));
+        line_7 = new QFrame(Widget);
+        line_7->setObjectName(QStringLiteral("line_7"));
+        line_7->setGeometry(QRect(340, 172, 50, 10));
+        line_7->setFrameShape(QFrame::HLine);
+        line_7->setFrameShadow(QFrame::Sunken);
 
         retranslateUi(Widget);
 
@@ -215,6 +248,7 @@ public:
         Bt_View->setText(QApplication::translate("Widget", "\351\242\204\350\247\210", 0));
         lineEdit_TipShow->setText(QString());
         Bt_Cwb->setText(QApplication::translate("Widget", "\347\231\275\345\271\263\350\241\241", 0));
+        Bt_DrawDivLine->setText(QApplication::translate("Widget", "\346\265\213\351\207\217", 0));
     } // retranslateUi
 
 };
