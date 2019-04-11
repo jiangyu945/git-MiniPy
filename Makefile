@@ -547,6 +547,7 @@ moc_widget.cpp: /opt/qt5.7.0/include/QtWidgets/QWidget \
 		/opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/QSemaphore \
 		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
+		opencv_measure.h \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv_modules.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/core.hpp \
@@ -905,6 +906,7 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/QSemaphore \
 		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
+		opencv_measure.h \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv_modules.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/core.hpp \
@@ -1031,7 +1033,9 @@ main.o: main.cpp widget.h \
 		/opt/qt5.7.0/include/QtGui/qguiapplication.h \
 		/opt/qt5.7.0/include/QtGui/qinputmethod.h \
 		/opt/qt5.7.0/include/QtCore/QTextCodec \
-		/opt/qt5.7.0/include/QtCore/qtextcodec.h
+		/opt/qt5.7.0/include/QtCore/qtextcodec.h \
+		/opt/qt5.7.0/include/QtGui/QFontDatabase \
+		/opt/qt5.7.0/include/QtGui/qfontdatabase.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 widget.o: widget.cpp widget.h \
@@ -1157,6 +1161,7 @@ widget.o: widget.cpp widget.h \
 		/opt/qt5.7.0/include/QtCore/QObject \
 		/opt/qt5.7.0/include/QtCore/QSemaphore \
 		/opt/qt5.7.0/include/QtCore/qsemaphore.h \
+		opencv_measure.h \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/opencv_modules.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/core.hpp \
@@ -1276,7 +1281,49 @@ widget.o: widget.cpp widget.h \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/wobble_suppression.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/ring_buffer.hpp \
 		ui_widget.h \
-		opencv_measure.h
+		/opt/qt5.7.0/include/QtCore/QVariant \
+		/opt/qt5.7.0/include/QtWidgets/QAction \
+		/opt/qt5.7.0/include/QtWidgets/qaction.h \
+		/opt/qt5.7.0/include/QtGui/qicon.h \
+		/opt/qt5.7.0/include/QtWidgets/qactiongroup.h \
+		/opt/qt5.7.0/include/QtWidgets/QApplication \
+		/opt/qt5.7.0/include/QtWidgets/qapplication.h \
+		/opt/qt5.7.0/include/QtCore/qcoreapplication.h \
+		/opt/qt5.7.0/include/QtCore/qeventloop.h \
+		/opt/qt5.7.0/include/QtWidgets/qdesktopwidget.h \
+		/opt/qt5.7.0/include/QtGui/qguiapplication.h \
+		/opt/qt5.7.0/include/QtGui/qinputmethod.h \
+		/opt/qt5.7.0/include/QtWidgets/QButtonGroup \
+		/opt/qt5.7.0/include/QtWidgets/qbuttongroup.h \
+		/opt/qt5.7.0/include/QtWidgets/QDial \
+		/opt/qt5.7.0/include/QtWidgets/qdial.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractslider.h \
+		/opt/qt5.7.0/include/QtWidgets/QFrame \
+		/opt/qt5.7.0/include/QtWidgets/qframe.h \
+		/opt/qt5.7.0/include/QtWidgets/QHeaderView \
+		/opt/qt5.7.0/include/QtWidgets/qheaderview.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractitemview.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractscrollarea.h \
+		/opt/qt5.7.0/include/QtCore/qabstractitemmodel.h \
+		/opt/qt5.7.0/include/QtCore/qitemselectionmodel.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractitemdelegate.h \
+		/opt/qt5.7.0/include/QtWidgets/qstyleoption.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractspinbox.h \
+		/opt/qt5.7.0/include/QtGui/qvalidator.h \
+		/opt/qt5.7.0/include/QtCore/qregularexpression.h \
+		/opt/qt5.7.0/include/QtWidgets/qslider.h \
+		/opt/qt5.7.0/include/QtWidgets/qstyle.h \
+		/opt/qt5.7.0/include/QtWidgets/qtabbar.h \
+		/opt/qt5.7.0/include/QtWidgets/qtabwidget.h \
+		/opt/qt5.7.0/include/QtWidgets/qrubberband.h \
+		/opt/qt5.7.0/include/QtWidgets/QLineEdit \
+		/opt/qt5.7.0/include/QtWidgets/qlineedit.h \
+		/opt/qt5.7.0/include/QtGui/qtextcursor.h \
+		/opt/qt5.7.0/include/QtGui/qtextformat.h \
+		/opt/qt5.7.0/include/QtWidgets/QPushButton \
+		/opt/qt5.7.0/include/QtWidgets/qpushbutton.h \
+		/opt/qt5.7.0/include/QtWidgets/qabstractbutton.h \
+		/opt/qt5.7.0/include/QtWidgets/QSlider
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o widget.o widget.cpp
 
 v4l2Cap.o: v4l2Cap.c v4l2Cap.h

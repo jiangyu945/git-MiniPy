@@ -10,6 +10,7 @@ Widget::Widget(QWidget *parent) :
 {
     ui->setupUi(this);
     qRegisterMetaType<QImage>("QImage");
+    qRegisterMetaType<QPixmap>("QPixmap");
 
     mpShadeWindow1 = new QWidget(this); //遮罩窗口1
     mpShadeWindow2 = new QWidget(this); //遮罩窗口2
@@ -18,6 +19,7 @@ Widget::Widget(QWidget *parent) :
 
     cwb_flag = false;
     line_flag = false;
+    minArea = 50;
 
     init();  //初始化
     startObjthread(); //启动多线程
@@ -49,6 +51,12 @@ void Widget::init()
     ui->ExposureSlider->setSingleStep(50); //设置步长
     ui->ExposureSlider->setValue(300);     //设置滑动条控件的初始值
 
+    //最小轮廓阈值调节滑动条
+    ui->Slider_MinArea->setMinimum(0);     //设置滑动条控件的最小值
+    ui->Slider_MinArea->setMaximum(1000);   //设置滑动条控件的最大值
+    ui->Slider_MinArea->setSingleStep(50); //设置步长
+    ui->Slider_MinArea->setValue(50);     //设置滑动条控件的初始值
+
     capTimer = new QTimer(this);
     showTimer =new QTimer(this);
     index = 0;   //初始化图片保存名下标
@@ -64,7 +72,7 @@ void Widget::init()
     connect(ui->Bt_DrawDivLine,SIGNAL(clicked(bool)),this,SLOT(doDrawDivLine()));  //画测量分界线
     connect(ui->Bt_Cwb,SIGNAL(clicked(bool)),this,SLOT(doProcessCalibrateWB()));   //获取自定义白平衡矫正白色点的像素值
     connect(ui->ExposureSlider, SIGNAL(valueChanged(int)), this, SLOT(setExposureValue(int)));   //当拖动滑动条并释放时，发出信号，调节曝光
-
+    connect(ui->Slider_MinArea,SIGNAL(valueChanged(int)),this,SLOT(adjustMinArea(int)));  //调整最小轮廓面积
 }
 
 //开启线程
@@ -91,7 +99,7 @@ void Widget::showTime()
     char nowtime[20];
     time(&t);
     ptr = localtime(&t);
-    strftime(nowtime,sizeof(nowtime),"%Y/%m/%d_%H:%M:%S",ptr);
+    strftime(nowtime,sizeof(nowtime),"%Y/%m/%d_%H:%M:%S",ptr); //时间格式化
     nowtime[sizeof(nowtime)-1] = '\0';
 
     ui->lineEdit_TipShow->setText(nowtime); //设置文本内容
@@ -366,6 +374,16 @@ void Widget::setExposureValue(int value)
     ui->lineEdit_TipShow->setText(str.append(s_value));
 }
 
+void Widget::adjustMinArea(int value)
+{
+    minArea = ui->Slider_MinArea->value();
+
+    int min_value = ui->Slider_MinArea->value();
+    QString s_value = QString::number(min_value, 10);  //int转string,10代表十进制
+    QString str = "最小轮廓面积:  ";
+    ui->lineEdit_TipShow->setText(str.append(s_value));
+}
+
 //白平衡模式设置
 //void Widget::doProcessSelectWB()
 //{
@@ -497,6 +515,8 @@ void Widget::doDrawDivLine()
     line_flag = !line_flag;
 }
 
+
+
 //预览并保存图片
 void Widget::doProcessViewImg()
 {
@@ -515,13 +535,13 @@ void Widget::doProcessViewImg()
     //未进行色彩矫正
     if(!cwb_flag){
         //预览对话框
-        QMessageBox noCwbBox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No);
+        QMessageBox noCwbBox(QMessageBox::NoIcon, NULL,"提示：未进行色彩矫正！", QMessageBox::Yes | QMessageBox::No);
         noCwbBox.setButtonText(QMessageBox::Yes,"保存");     //保存
         noCwbBox.setButtonText(QMessageBox::No,"取消");    //取消
         noCwbBox.setDefaultButton(QMessageBox::No);
 
         myMutex.lock();  //加锁
-        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
+        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH-70,OBJ_Y*HEIGHT/SHOW_HEIGHT-300,            //抓取目标区域图像
                             OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
 
         pp_img = sp_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果
@@ -545,16 +565,16 @@ void Widget::doProcessViewImg()
     }
 
     //已进行色彩矫正
-    else{
+   else{
         //预览对话框
         QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
-        msgbox.setButtonText(QMessageBox::Yes,"保存");     //保存
-        msgbox.setButtonText(QMessageBox::Ok,"测量");   //测量
-        msgbox.setButtonText(QMessageBox::No,"取消");    //取消
+        msgbox.setButtonText(QMessageBox::Yes,"保存");
+        msgbox.setButtonText(QMessageBox::Ok,"测量");
+        msgbox.setButtonText(QMessageBox::No,"取消");
         msgbox.setDefaultButton(QMessageBox::No);
 
         myMutex.lock();  //加锁
-        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
+        sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH-70,OBJ_Y*HEIGHT/SHOW_HEIGHT-300,            //抓取目标区域图像
                             OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
         //色彩矫正
         QImage cal_img = wb_calibrate(sp_img);
@@ -586,7 +606,8 @@ void Widget::doProcessViewImg()
         {
             Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
             cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
-            Mat m_src = opencv_measure(src);             //尺寸测量
+
+            Mat m_src = opencv_measure(src,minArea);             //尺寸测量
             QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
             QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
 
@@ -594,7 +615,7 @@ void Widget::doProcessViewImg()
             //显示
             QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
             msg_measure.setButtonText(QMessageBox::Yes,"保存");    //保存
-            msg_measure.setButtonText(QMessageBox::Ok,"取消");   //取消
+            msg_measure.setButtonText(QMessageBox::No,"取消");   //取消
 
             //msg_measure.setGeometry(0,32,340,240);
 
@@ -622,6 +643,7 @@ void Widget::doProcessViewImg()
     //重启采集定时器
     capTimer->start(1000.000/30);
 }
+
 
 //移除TF卡
 void Widget::doProcessRemoveTfcard()

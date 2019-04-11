@@ -36,7 +36,6 @@ public:
     QLineEdit *lineEdit_TipShow;
     QSlider *ExposureSlider;
     QFrame *line_3;
-    QFrame *line_5;
     QPushButton *Bt_Cwb;
     QPushButton *Bt_DrawDivLine;
     QFrame *line_8;
@@ -44,6 +43,7 @@ public:
     QFrame *line_6;
     QDial *dial_Time;
     QFrame *line_7;
+    QSlider *Slider_MinArea;
 
     void setupUi(QWidget *Widget)
     {
@@ -90,13 +90,13 @@ public:
         line_4->setFrameShadow(QFrame::Sunken);
         lineEdit_TipShow = new QLineEdit(Widget);
         lineEdit_TipShow->setObjectName(QStringLiteral("lineEdit_TipShow"));
-        lineEdit_TipShow->setGeometry(QRect(0, 0, 390, 38));
+        lineEdit_TipShow->setGeometry(QRect(0, 0, 390, 28));
         lineEdit_TipShow->setStyleSheet(QLatin1String("font: oblique 10pt \"Sans Serif\";\n"
 "background-color: rgb(169, 166, 255);\n"
 "color: rgb(83, 83, 83);"));
         ExposureSlider = new QSlider(Widget);
         ExposureSlider->setObjectName(QStringLiteral("ExposureSlider"));
-        ExposureSlider->setGeometry(QRect(0, 232, 390, 40));
+        ExposureSlider->setGeometry(QRect(0, 238, 390, 34));
         ExposureSlider->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
 " \n"
 "border: 0px solid #bbb;\n"
@@ -191,11 +191,6 @@ public:
         line_3->setGeometry(QRect(390, 0, 10, 272));
         line_3->setFrameShape(QFrame::VLine);
         line_3->setFrameShadow(QFrame::Sunken);
-        line_5 = new QFrame(Widget);
-        line_5->setObjectName(QStringLiteral("line_5"));
-        line_5->setGeometry(QRect(0, 38, 390, 14));
-        line_5->setFrameShape(QFrame::HLine);
-        line_5->setFrameShadow(QFrame::Sunken);
         Bt_Cwb = new QPushButton(Widget);
         Bt_Cwb->setObjectName(QStringLiteral("Bt_Cwb"));
         Bt_Cwb->setGeometry(QRect(340, 182, 50, 50));
@@ -210,12 +205,12 @@ public:
 "color: rgb(84, 87, 255);"));
         line_8 = new QFrame(Widget);
         line_8->setObjectName(QStringLiteral("line_8"));
-        line_8->setGeometry(QRect(0, 52, 10, 180));
+        line_8->setGeometry(QRect(0, 58, 10, 180));
         line_8->setFrameShape(QFrame::VLine);
         line_8->setFrameShadow(QFrame::Sunken);
         line_9 = new QFrame(Widget);
         line_9->setObjectName(QStringLiteral("line_9"));
-        line_9->setGeometry(QRect(330, 52, 10, 180));
+        line_9->setGeometry(QRect(330, 58, 10, 180));
         line_9->setFrameShape(QFrame::VLine);
         line_9->setFrameShadow(QFrame::Sunken);
         line_6 = new QFrame(Widget);
@@ -233,6 +228,98 @@ public:
         line_7->setGeometry(QRect(340, 172, 50, 10));
         line_7->setFrameShape(QFrame::HLine);
         line_7->setFrameShadow(QFrame::Sunken);
+        Slider_MinArea = new QSlider(Widget);
+        Slider_MinArea->setObjectName(QStringLiteral("Slider_MinArea"));
+        Slider_MinArea->setGeometry(QRect(0, 28, 390, 30));
+        Slider_MinArea->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
+" \n"
+"border: 0px solid #bbb;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::sub-page:horizontal {\n"
+" \n"
+"background: rgb(235,97,0);\n"
+" \n"
+"border-radius: 0px;\n"
+" \n"
+"margin-top:8px;\n"
+" \n"
+"margin-bottom:8px;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::add-page:horizontal {\n"
+" \n"
+"background: rgb(255,255, 255);\n"
+" \n"
+"border: 0px solid #777;\n"
+" \n"
+"border-radius: 2px;\n"
+" \n"
+"margin-top:8px;\n"
+" \n"
+"margin-bottom:8px;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::handle:horizontal {\n"
+" \n"
+"background: rgb(255,153,102);\n"
+" \n"
+"border: 1px solid rgb(255,153,102);\n"
+" \n"
+"width: 14px;\n"
+" \n"
+"height:10px;\n"
+" \n"
+"border-radius: 7px;\n"
+" \n"
+"margin-top:2px;\n"
+" \n"
+"margin-bottom:2px;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::handle:horizontal:hover {\n"
+" \n"
+"background: rgb(255,128,6);\n"
+" \n"
+"border: 1px solid rgba(102,102,102,102);\n"
+" \n"
+"border-radius: 7px;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::sub-page:horizontal:disabled {\n"
+" \n"
+"background: #bbb;\n"
+" \n"
+"border-color: #999;\n"
+" \n"
+""
+                        "}\n"
+" \n"
+"QSlider::add-page:horizontal:disabled {\n"
+" \n"
+"background: #eee;\n"
+" \n"
+"border-color: #999;\n"
+" \n"
+"}\n"
+" \n"
+"QSlider::handle:horizontal:disabled {\n"
+" \n"
+"background: #eee;\n"
+" \n"
+"border: 1px solid #aaa;\n"
+" \n"
+"border-radius: 4px;\n"
+" \n"
+"}\n"
+" \n"
+""));
+        Slider_MinArea->setOrientation(Qt::Horizontal);
 
         retranslateUi(Widget);
 

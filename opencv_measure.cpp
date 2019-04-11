@@ -19,7 +19,7 @@ void PaintText(Mat& img, char* text, Point origin)
     putText(img, text, origin, fontface, fontscale, textcolor, thickness, linetype);
 }
 
-Mat fineMinAreaRect(Mat &threshold_output, Mat &src)
+Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
 {
     bool flag = false;   //查找比例尺标志
     double  pp = 0.0;    //比例因子：每像素代表的实际物理尺寸
@@ -47,7 +47,7 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src)
     for (; itc != contours.end();)
     {
         double g_dConArea = fabs(contourArea(*itc));
-        if (g_dConArea < 100)
+        if (g_dConArea < minArea)
         {
             itc = contours.erase(itc);
         }
@@ -138,7 +138,7 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src)
     //imshow("测量结果", src);
 }
 
-Mat opencv_measure(Mat& src)
+Mat opencv_measure(Mat& src,int minArea)
 {
     Mat  src_gray, edge;
 
@@ -154,10 +154,12 @@ Mat opencv_measure(Mat& src)
     Mat kernel = (Mat_<int>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
     filter2D(src, src, -1, kernel, Point(-1, -1), 0);
 
+    //形态学开运算
+    //作用：可以用来消除小物体、在纤细点处分离物体、平滑较大物体的边界的同时并不明显改变其面积
     //定义核
     Mat element = getStructuringElement(MORPH_RECT, Size(7, 7));
     //进行形态学操作
-    morphologyEx(src, src, MORPH_OPEN, element);   //开运算：可以用来消除小物体、在纤细点处分离物体、平滑较大物体的边界的同时并不明显改变其面积
+    morphologyEx(src, src, MORPH_OPEN, element);
 
 
     cvtColor(src, src_gray, CV_BGR2GRAY);  //转为灰度图像
@@ -165,6 +167,10 @@ Mat opencv_measure(Mat& src)
     Canny(src_gray, edge, 30, 90, 3);  //边缘检测,得到的是二值图像
     //imshow("边缘检测", edge);
 
-    return fineMinAreaRect(edge, src);  //寻找最小外接矩形
+    //形态学闭运算
+    //进行形态学操作
+    morphologyEx(edge, edge, MORPH_CLOSE, element);
+
+    return fineMinAreaRect(edge, src,minArea);  //寻找最小外接矩形
 }
 

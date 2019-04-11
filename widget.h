@@ -29,7 +29,7 @@
 
 //画布起始点
 #define  PIX_X   10
-#define  PIX_Y   52
+#define  PIX_Y   58
 
 //索引框起点
 #define  OBJ_X     ((SHOW_WIDTH-OBJ_WIDTH)/2+PIX_X)
@@ -60,9 +60,9 @@ public slots:
     void doProcessCloseCam();    //关闭摄像头
     void doDrawDivLine();        //画测量分界线
     void setExposureValue(int);  //调节曝光时间
+    void adjustMinArea(int);     //调整最小轮廓面积
 
     void doProcessCalibrateWB(); //自定义白平衡灰卡矫正
-
 
 protected:
     virtual void paintEvent(QPaintEvent*);
@@ -86,6 +86,7 @@ private:
     QTime t;
     bool cwb_flag;  //白平衡矫正标志
     bool line_flag; //尺寸测量分界线
+    int minArea;   //最小轮廓面积
 
     void init();            //初始化
     void startObjthread();  //开启多线程
