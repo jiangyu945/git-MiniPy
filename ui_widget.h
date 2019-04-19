@@ -54,7 +54,7 @@ public:
         Bt_CamClose->setObjectName(QStringLiteral("Bt_CamClose"));
         Bt_CamClose->setGeometry(QRect(400, 210, 80, 62));
         Bt_CamClose->setStyleSheet(QLatin1String("font: 18pt \"Sans Serif\";\n"
-"background-color: rgb(159, 3, 5);"));
+"background-color: rgb(255, 0, 0);"));
         Bt_CamOpen = new QPushButton(Widget);
         Bt_CamOpen->setObjectName(QStringLiteral("Bt_CamOpen"));
         Bt_CamOpen->setGeometry(QRect(400, 0, 80, 62));
@@ -64,7 +64,7 @@ public:
         Bt_RemoveTF->setObjectName(QStringLiteral("Bt_RemoveTF"));
         Bt_RemoveTF->setGeometry(QRect(400, 140, 80, 62));
         Bt_RemoveTF->setStyleSheet(QLatin1String("font: oblique 13pt \"Sans Serif\";\n"
-"background-color: rgb(255, 255, 0);\n"
+"background-color: rgb(116, 176, 69);\n"
 "\n"
 ""));
         line = new QFrame(Widget);

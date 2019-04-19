@@ -6,7 +6,7 @@
 void PaintText(Mat& img, char* text, Point origin)
 {
     int fontface = CV_FONT_HERSHEY_SIMPLEX;   //字体
-    double fontscale = 1.5;                   //尺寸因子，值越大文字越大
+    double fontscale = 1.0;                   //尺寸因子，值越大文字越大
     Scalar textcolor = Scalar(0, 0, 255);    //文本颜色
     int thickness = 4;  //线宽
     int linetype = 8;   //线型
@@ -138,9 +138,10 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
     //imshow("测量结果", src);
 }
 
-Mat opencv_measure(Mat& src,int minArea)
+Mat opencv_measure(Mat& origin,int minArea)
 {
-    Mat  src_gray, edge;
+    Mat  src,src_gray, edge;
+    origin.copyTo(src);
 
     //resize(src, src, Size(src.cols * 2, src.rows * 2));  //切记等比例缩放，否则实际尺寸会改变
 
@@ -154,13 +155,6 @@ Mat opencv_measure(Mat& src,int minArea)
     Mat kernel = (Mat_<int>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
     filter2D(src, src, -1, kernel, Point(-1, -1), 0);
 
-    //形态学开运算
-    //作用：可以用来消除小物体、在纤细点处分离物体、平滑较大物体的边界的同时并不明显改变其面积
-    //定义核
-    Mat element = getStructuringElement(MORPH_RECT, Size(7, 7));
-    //进行形态学操作
-    morphologyEx(src, src, MORPH_OPEN, element);
-
 
     cvtColor(src, src_gray, CV_BGR2GRAY);  //转为灰度图像
 
@@ -168,9 +162,10 @@ Mat opencv_measure(Mat& src,int minArea)
     //imshow("边缘检测", edge);
 
     //形态学闭运算
-    //进行形态学操作
+    //定义核
+    Mat element = getStructuringElement(MORPH_RECT, Size(7, 7));
     morphologyEx(edge, edge, MORPH_CLOSE, element);
 
-    return fineMinAreaRect(edge, src,minArea);  //寻找最小外接矩形
+    return fineMinAreaRect(edge, origin, minArea);  //寻找最小外接矩形
 }
 

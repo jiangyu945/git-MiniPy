@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-#define DEBUG         //预定义调试宏
+//#define DEBUG         //预定义调试宏
 #ifdef DEBUG          //封装打印函数
         #define PRINT (printf("%s %s %d: ",__FILE__,__FUNCTION__,__LINE__),printf)
 #else
@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 
-#define  DEV_NAME  "/dev/video4"     //设备号video0,video5
+#define  DEV_NAME  "/dev/video4"
 
 #define  G_PIX_FORMAT       V4L2_PIX_FMT_MJPEG    //采集格式：V4L2_PIX_FMT_MJPEG或V4L2_PIX_FMT_YUYV
 #define  G_CAP_FPS          30                    //采集帧率

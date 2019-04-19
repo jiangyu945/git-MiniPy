@@ -47,7 +47,7 @@ void Widget::init()
 
     //曝光调节滑动条
     ui->ExposureSlider->setMinimum(0);     //设置滑动条控件的最小值
-    ui->ExposureSlider->setMaximum(600);   //设置滑动条控件的最大值
+    ui->ExposureSlider->setMaximum(1000);   //设置滑动条控件的最大值
     ui->ExposureSlider->setSingleStep(50); //设置步长
     ui->ExposureSlider->setValue(300);     //设置滑动条控件的初始值
 
@@ -183,6 +183,7 @@ cv::Mat QImage2cvMat(QImage image)
     return mat;
 }
 
+//获取灰度值
 float Widget::getGrayPixel(QPixmap sp_img)
 {
     QImage c_img = sp_img.toImage();
@@ -231,7 +232,19 @@ float Widget::getGrayPixel(QPixmap sp_img)
     return grayPix;
 }
 
-//白平衡矫正
+//自定义白平衡灰卡矫正
+void Widget::doProcessCalibrateWB()
+{
+    QMutexLocker locker(&myMutex); //加锁
+    QPixmap cwb_pix = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH-70+(OBJ_WIDTH*WIDTH/SHOW_WIDTH/4),OBJ_Y*HEIGHT/SHOW_HEIGHT-300+(OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT/4),            //抓取目标区域图像
+               OBJ_WIDTH*WIDTH/SHOW_WIDTH/2,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT/2);  //涉及图像大小比例转换!
+    float grayPixel = getGrayPixel(cwb_pix);  //获取灰色像素值
+    whitePixel = 2*grayPixel;
+
+    cwb_flag = true;
+}
+
+//白平衡色彩矫正
 QImage wb_calibrate(QPixmap sp_img)
 {
     QImage c_img = sp_img.toImage();
@@ -348,20 +361,7 @@ void Widget::doProcessOpenCam(){
     ui->Bt_RemoveTF->setEnabled(true);
     ui->Bt_CamClose->setEnabled(true);
 
-    capTimer->start(1000.000/30);    //定时发送采集请求
-}
-
-
-//自定义白平衡灰卡矫正
-void Widget::doProcessCalibrateWB()
-{
-    QMutexLocker locker(&myMutex); //加锁
-    QPixmap cwb_pix = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH,OBJ_Y*HEIGHT/SHOW_HEIGHT,            //抓取目标区域图像
-               OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
-    float grayPixel = getGrayPixel(cwb_pix);  //获取灰色像素值
-    whitePixel = 2*grayPixel;
-
-    cwb_flag = true;
+    capTimer->start(1000.000/(2*FPS));    //定时发送采集请求,时间给到显示频率的一半，降低显示延迟
 }
 
 //调节曝光时间
@@ -374,6 +374,7 @@ void Widget::setExposureValue(int value)
     ui->lineEdit_TipShow->setText(str.append(s_value));
 }
 
+//调整最小轮廓面积
 void Widget::adjustMinArea(int value)
 {
     minArea = ui->Slider_MinArea->value();
@@ -383,73 +384,6 @@ void Widget::adjustMinArea(int value)
     QString str = "最小轮廓面积:  ";
     ui->lineEdit_TipShow->setText(str.append(s_value));
 }
-
-//白平衡模式设置
-//void Widget::doProcessSelectWB()
-//{
-
-//    QMessageBox msgbox(QMessageBox::NoIcon, NULL,"Please select white balance mode : ",
-//                       QMessageBox::Yes | QMessageBox::YesAll | QMessageBox::Save |
-//                       QMessageBox::Ok | QMessageBox::Open | QMessageBox::No |
-//                       QMessageBox::Cancel);
-//    msgbox.setButtonText(QMessageBox::Yes,"Mor1h");      //日出一小时  3500K
-//    msgbox.setButtonText(QMessageBox::YesAll,"Mor2h");   //日出两小时  4700K
-//    msgbox.setButtonText(QMessageBox::Save,"Cloudy");    //阴天       7000K
-//    msgbox.setButtonText(QMessageBox::Ok,"Sunny");       //正午阳光    6000K
-//    msgbox.setButtonText(QMessageBox::Open,"Tung");      //钨丝灯      3000K
-//    msgbox.setButtonText(QMessageBox::No,"Flus");        //日光灯      6000K
-//    msgbox.setButtonText(QMessageBox::Cancel,"Sunset");  //日落        2500K
-//    msgbox.setDefaultButton(QMessageBox::Ok);
-//    switch(msgbox.exec()){
-//        case QMessageBox::Yes:
-//            set_cap_wb(3500);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Morn1h"); //设置文本内容
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
-//            break;
-
-//        case QMessageBox::YesAll:
-//            set_cap_wb(4700);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Morn2h");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        case QMessageBox::Save:
-//            set_cap_wb(7000);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Cloudy");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        case QMessageBox::Ok:
-//            set_cap_wb(6000);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Sunny");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        case QMessageBox::Open:
-//            set_cap_wb(3000);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Tungsten");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        case QMessageBox::No:
-//            set_cap_wb(6000);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Fluorescent");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        case QMessageBox::Cancel:
-//            set_cap_wb(2500);
-//            ui->lineEdit_TipShow->setText("Now WB Mode : Sunset");
-//            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-//            break;
-
-//        default:
-//            break;
-//    }
-
-//    //获取摄像头参数
-//    get_cap_para();
-//}
 
 //采集图片
 void Widget::doProcessCapture()
@@ -467,7 +401,7 @@ void Widget::doProcessDisplay(QImage rd_img)
     showTimer->start(1000.000/FPS); //开启显示定时器
 }
 
- //QPainter绘制图像
+//QPainter绘制图像
 void Widget::paintEvent(QPaintEvent *)
 {
     QPainter mypainter(this);
@@ -510,18 +444,18 @@ void Widget::paintEvent(QPaintEvent *)
     mpShadeWindow4->show();
 }
 
+
+//绘制图像索引框
 void Widget::doDrawDivLine()
 {
     line_flag = !line_flag;
 }
 
-
-
 //预览并保存图片
 void Widget::doProcessViewImg()
-{
-    //停止后台采集
-    capTimer->stop();
+{    
+    capTimer->stop();   //停止后台采集
+    showTimer->stop();  //停止显示刷新
 
     //构造带时间戳的图片名
     struct tm *ptr;
@@ -532,7 +466,7 @@ void Widget::doProcessViewImg()
     strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
     strcat(outfile,".jpg");
 
-    //未进行色彩矫正
+    //未进行白平衡矫正
     if(!cwb_flag){
         //预览对话框
         QMessageBox noCwbBox(QMessageBox::NoIcon, NULL,"提示：未进行色彩矫正！", QMessageBox::Yes | QMessageBox::No);
@@ -564,7 +498,7 @@ void Widget::doProcessViewImg()
         }
     }
 
-    //已进行色彩矫正
+    //已进行白平衡矫正
    else{
         //预览对话框
         QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
@@ -640,8 +574,9 @@ void Widget::doProcessViewImg()
          }
     }
 
-    //重启采集定时器
-    capTimer->start(1000.000/30);
+
+    capTimer->start(1000.000/FPS);  //重启采集定时器
+    showTimer->start(1000.000/FPS);  //重启显示刷新
 }
 
 

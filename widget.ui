@@ -24,7 +24,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">font: 18pt &quot;Sans Serif&quot;;
-background-color: rgb(159, 3, 5);</string>
+background-color: rgb(255, 0, 0);</string>
    </property>
    <property name="text">
     <string>关闭</string>
@@ -58,7 +58,7 @@ font: 18pt &quot;Sans Serif&quot;;</string>
    </property>
    <property name="styleSheet">
     <string notr="true">font: oblique 13pt &quot;Sans Serif&quot;;
-background-color: rgb(255, 255, 0);
+background-color: rgb(116, 176, 69);
 
 </string>
    </property>

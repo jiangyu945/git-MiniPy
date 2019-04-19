@@ -136,8 +136,8 @@ int open_cam()
     struct v4l2_capability cap;
     cam_fd = open(DEV_NAME, O_RDWR | O_NONBLOCK, 0);  //非阻塞方式打开摄像头
     if (cam_fd < 0)
-    {
-        perror("open device failed!");
+    {  
+       perror("open device failed!");
         return -1;
     }
 
