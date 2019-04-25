@@ -140,31 +140,36 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
 
 Mat opencv_measure(Mat& origin,int minArea)
 {
-    Mat  src,src_gray, edge;
-    origin.copyTo(src);
+    Mat  src,m_src,src_gray, edge;
+
+    if(origin.empty())
+    {
+        std::cout << "Original image is empty!" << std::endl;
+    }
+    //origin.copyTo(src);
+    src = origin.clone(); //深拷贝
 
     //resize(src, src, Size(src.cols * 2, src.rows * 2));  //切记等比例缩放，否则实际尺寸会改变
 
 
-    GaussianBlur(src, src, Size(3, 3), BORDER_DEFAULT);  //高斯模糊
+    //GaussianBlur(src, src, Size(3, 3), BORDER_DEFAULT);  //高斯模糊
                                                          //blur(src, src, Size(3, 3)); //均值滤波
                                                          //medianBlur(src, src, 3);   //中值滤波
+    bilateralFilter(src, m_src, 25, 25 * 2, 25 / 2);     //保留边缘效果最好,双边滤波不支持in-place操作
                                                          //imshow("滤波效果", src);
 
-    //对比度增强（很重要，否则部分背光区域边缘轮廓无法找到）
+    //（图像卷积运算）滤波器。（很重要，可增强对比度，否则部分背光区域边缘轮廓无法找到）
     Mat kernel = (Mat_<int>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
-    filter2D(src, src, -1, kernel, Point(-1, -1), 0);
-
-
-    cvtColor(src, src_gray, CV_BGR2GRAY);  //转为灰度图像
-
-    Canny(src_gray, edge, 30, 90, 3);  //边缘检测,得到的是二值图像
-    //imshow("边缘检测", edge);
+    filter2D(m_src, m_src, -1, kernel, Point(-1, -1), 0);
 
     //形态学闭运算
     //定义核
-    Mat element = getStructuringElement(MORPH_RECT, Size(7, 7));
-    morphologyEx(edge, edge, MORPH_CLOSE, element);
+    //Mat element = getStructuringElement(MORPH_RECT, Size(7, 7));
+    //morphologyEx(edge, edge, MORPH_CLOSE, element);
+    cvtColor(m_src, src_gray, CV_BGR2GRAY);  //转为灰度图像
+
+    Canny(src_gray, edge, 150, 450, 3);  //边缘检测,得到二值图像
+    //imshow("边缘检测", edge);
 
     return fineMinAreaRect(edge, origin, minArea);  //寻找最小外接矩形
 }

@@ -208,13 +208,13 @@ float Widget::getGrayPixel(QPixmap sp_img)
     }
    // printf("grayPix = %.2f\n",grayPix);
 
-    //调整RGB三个通道各自的值
-    imageRGB[0] = grayPix;
-    imageRGB[1] = grayPix;
-    imageRGB[2] = grayPix;
+//    //调整RGB三个通道各自的值
+//    imageRGB[0] = grayPix;
+//    imageRGB[1] = grayPix;
+//    imageRGB[2] = grayPix;
 
-    //RGB三通道图像合并
-    merge(imageRGB, mat);
+//    //RGB三通道图像合并
+//    merge(imageRGB, mat);
 
 //    //对话框显示效果
 //    QMessageBox showbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Ok);
@@ -244,6 +244,30 @@ void Widget::doProcessCalibrateWB()
     cwb_flag = true;
 }
 
+//简单系数补偿方式实现自定义白平衡
+QImage wb_calibrate2(QPixmap sp_img)
+{
+    QImage c_img = sp_img.toImage();
+    Mat mat = QImage2cvMat(c_img);        //此处得到的Mat对象格式类型为CV_8UC4
+    cvtColor(mat,mat,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
+
+    /***********************注意：下面图像处理要求Mat格式类型必须为CV_8UC3!!!*********************/
+    const float kwb = 255.0 / whitePixel;
+
+    //循环遍历，进行补偿
+    cv::Mat_<cv::Vec3b>::iterator it = mat.begin<cv::Vec3b>();
+    while (it != mat.end<cv::Vec3b>())
+    {
+        (*it)[0] = (*it)[0]*kwb;
+        (*it)[1] = (*it)[1]*kwb;
+        (*it)[2] = (*it)[2]*kwb;
+        ++it;
+    }
+
+    QImage cc_img = cvMat2QImage(mat);   //Mat 转 QImage
+    return  cc_img;
+}
+
 //白平衡色彩矫正
 QImage wb_calibrate(QPixmap sp_img)
 {
@@ -255,7 +279,7 @@ QImage wb_calibrate(QPixmap sp_img)
     const float inputMin = 0.0f;
     const float inputMax = 255.0f;
     const float outputMin = 0.0f;
-    const float outputMax = whitePixel;
+    const float outputMax = whitePixel;  //whitePixel
 
     std::vector<Mat> bgr;
     split(mat, bgr);        //分离B、G、R三通道
@@ -264,13 +288,13 @@ QImage wb_calibrate(QPixmap sp_img)
     // 将1%的最大值和最小值设置为255和0
     // 其余值映射到(0, 255), 这样使得每个通道的值在rgb中分布较均匀, 以实现简单的颜色平衡
     /********************* Simple white balance *********************/
-    float s1 = 1.0f;//最低值百分比：取1%
-    float s2 = 1.0f;//最高值百分比：取1%
+    float s1 = 1.0f;  //最低值百分比：取1%
+    float s2 = 1.0f;  //最高值百分比：取1%
 
-    int depth = 2;// depth of histogram tree
-    int bins = 16;// number of bins at each histogram level
+    int depth = 2;  // depth of histogram tree
+    int bins = 16;  // number of bins at each histogram level
     int total = bgr[0].cols * bgr[0].rows;
-    int nElements = int(pow((float)bins, (float)depth));// number of elements in histogram tree
+    int nElements = int(pow((float)bins, (float)depth)); // number of elements in histogram tree
 
     for (size_t k = 0; k < bgr.size(); ++k)
     {
@@ -326,7 +350,6 @@ QImage wb_calibrate(QPixmap sp_img)
     }
 
     merge(bgr, mat); //合并R、G、B三通道
-
 
     QImage cc_img = cvMat2QImage(mat);   //Mat 转 QImage
     return  cc_img;
