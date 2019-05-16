@@ -4,6 +4,8 @@
 static float whitePixel = 255.0f;  //白色像素值
 QMutex myMutex;
 
+int ex_value = 300;  //曝光值
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -17,7 +19,7 @@ Widget::Widget(QWidget *parent) :
     mpShadeWindow3 = new QWidget(this); //遮罩窗口3
     mpShadeWindow4 = new QWidget(this); //遮罩窗口4
 
-    cwb_flag = false;
+    cwb_flag = 0;
     line_flag = false;
     minArea = 50;
 
@@ -37,6 +39,8 @@ Widget::~Widget()
 
 
 /*=======================================Functions====================================*/
+
+//部分状态初始化
 void Widget::init()
 {
     //按钮状态初始化
@@ -47,14 +51,14 @@ void Widget::init()
 
     //曝光调节滑动条
     ui->ExposureSlider->setMinimum(0);     //设置滑动条控件的最小值
-    ui->ExposureSlider->setMaximum(1000);   //设置滑动条控件的最大值
-    ui->ExposureSlider->setSingleStep(50); //设置步长
+    ui->ExposureSlider->setMaximum(1200);   //设置滑动条控件的最大值
+    ui->ExposureSlider->setSingleStep(20); //设置步长
     ui->ExposureSlider->setValue(300);     //设置滑动条控件的初始值
 
     //最小轮廓阈值调节滑动条
     ui->Slider_MinArea->setMinimum(0);     //设置滑动条控件的最小值
     ui->Slider_MinArea->setMaximum(1000);   //设置滑动条控件的最大值
-    ui->Slider_MinArea->setSingleStep(50); //设置步长
+    ui->Slider_MinArea->setSingleStep(30); //设置步长
     ui->Slider_MinArea->setValue(50);     //设置滑动条控件的初始值
 
     capTimer = new QTimer(this);
@@ -105,10 +109,10 @@ void Widget::showTime()
     ui->lineEdit_TipShow->setText(nowtime); //设置文本内容
     ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
 
-    //判断当前时间是否准确
-    if(!(nowtime[2]>49 || nowtime[3]>50)){  //49、50分别为“1”、“2”的ASCII码值
-        ui->Bt_CamOpen->setEnabled(false);
-    }
+//    //判断当前时间是否准确
+//    if(!(nowtime[2]>49 || nowtime[3]>50)){  //49、50分别为“1”、“2”的ASCII码值
+//        ui->Bt_CamOpen->setEnabled(false);
+//    }
 }
 
 //Mat转QImage
@@ -390,7 +394,7 @@ void Widget::doProcessOpenCam(){
 //调节曝光时间
 void Widget::setExposureValue(int value)
 {
-    int ex_value = ui->ExposureSlider->value();
+    ex_value = ui->ExposureSlider->value();
     setExposureTime(ex_value);
     QString s_value = QString::number(ex_value, 10);  //int转string,10代表十进制
     QString str = "曝光值:  ";  //Exposure Value
@@ -480,14 +484,15 @@ void Widget::doProcessViewImg()
     capTimer->stop();   //停止后台采集
     showTimer->stop();  //停止显示刷新
 
-    //构造带时间戳的图片名
-    struct tm *ptr;
-    time_t t;
-    char outfile[100];
-    time(&t);
-    ptr = localtime(&t);
-    strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
-    strcat(outfile,".jpg");
+//    //构造带时间戳的图片名
+//    struct tm *ptr;
+//    time_t t;
+//    char srcfile[100];
+//    time(&t);
+//    ptr = localtime(&t);
+//    strftime(srcfile,sizeof(srcfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
+//    strcat(srcfile,".jpg");
+    char srcfile[50]= "/media/mmcblk1p1/pictures/src.jpg";
 
     //未进行白平衡矫正
     if(!cwb_flag){
@@ -505,18 +510,26 @@ void Widget::doProcessViewImg()
         noCwbBox.setIconPixmap(pp_img);    //显示
 
         myMutex.unlock();  //解锁
-        //保存myMutex.unlock();  //解锁
+        //保存
         if(noCwbBox.exec() == QMessageBox::Yes)
         {
             //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-            bool ret = sp_img.save(outfile);   //保存图片
+            bool ret = sp_img.save(srcfile);   //保存图片
             if(!ret){
                 ui->lineEdit_TipShow->setText("警告！ 保存失败！！！"); //Warning! Save Failed!!!
                 ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
             }
             else{
-                ui->lineEdit_TipShow->setText("图片保存成功");  //Save succeed!
-                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                //构造EXIF信息
+                int ret_t = makeExif(cwb_flag);
+                if(ret_t != 0){
+                    ui->lineEdit_TipShow->setText("Exif信息添加失败！！！");
+                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                }
+                else{
+                    ui->lineEdit_TipShow->setText("图片保存成功！");
+                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                }
             }
         }
     }
@@ -524,7 +537,7 @@ void Widget::doProcessViewImg()
     //已进行白平衡矫正
    else{
         //预览对话框
-        QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No |QMessageBox::Ok);
+        QMessageBox msgbox(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes |QMessageBox::Ok | QMessageBox::No );
         msgbox.setButtonText(QMessageBox::Yes,"保存");
         msgbox.setButtonText(QMessageBox::Ok,"测量");
         msgbox.setButtonText(QMessageBox::No,"取消");
@@ -533,6 +546,7 @@ void Widget::doProcessViewImg()
         myMutex.lock();  //加锁
         sp_img = p_img.copy(OBJ_X*WIDTH/SHOW_WIDTH-70,OBJ_Y*HEIGHT/SHOW_HEIGHT-300,            //抓取目标区域图像
                             OBJ_WIDTH*WIDTH/SHOW_WIDTH,OBJ_HEIGHT*HEIGHT/SHOW_HEIGHT);  //涉及图像大小比例转换!
+
         //色彩矫正
         QImage cal_img = wb_calibrate(sp_img);
         QPixmap mmp_img = QPixmap::fromImage(cal_img);
@@ -543,61 +557,82 @@ void Widget::doProcessViewImg()
 
         myMutex.unlock();  //解锁
 
-        //保存
-        if(msgbox.exec() == QMessageBox::Yes)
-        {
-            //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-            bool ret = cal_img.save(outfile);   //保存图片
-            if(!ret){
-                ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
-                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-            }
-            else{
-                ui->lineEdit_TipShow->setText("保存成功！");
-                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-            }
+        switch( msgbox.exec() ) {
+            //图像保存
+            case QMessageBox::Yes :
+                {
+                    //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+                    bool ret = cal_img.save(srcfile);    //保存图片
+                    if(!ret){
+                        ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
+                        ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                    }
+                    else{
+                        //构造EXIF信息
+                        int ret_t = makeExif(cwb_flag);
+                        if(ret_t != 0){
+                            ui->lineEdit_TipShow->setText("Exif信息添加失败！！！");
+                            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                        }
+                        else{
+                            ui->lineEdit_TipShow->setText("图片保存成功！");
+                            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                        }
+                    }
+                }
+                break;
+
+            //尺寸测量
+            case QMessageBox::Ok :
+                {
+
+                    Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
+                    cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
+
+                    Mat m_src = opencv_measure(src,minArea);             //尺寸测量
+
+                    QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
+                    QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
+
+                    //显示
+                    QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
+                    msg_measure.setButtonText(QMessageBox::Yes,"保存");    //保存
+                    msg_measure.setButtonText(QMessageBox::No,"取消");   //取消
+
+                    //msg_measure.setGeometry(0,32,340,240);
+
+                    QPixmap mm_img = ms_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果 360 222
+                    msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
+
+                    //保存
+                    if(msg_measure.exec() == QMessageBox::Yes)
+                    {
+                        //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
+                        bool ret = ms_img.save(srcfile);   //保存图片
+                        if(!ret){
+                            ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
+                            ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                        }
+                        else{
+                            //构造EXIF信息
+                            int ret_t = makeExif(cwb_flag);
+                            if(ret_t != 0){
+                                ui->lineEdit_TipShow->setText("Exif信息添加失败！！！");
+                                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                            }
+                            else{
+                                ui->lineEdit_TipShow->setText("图片保存成功！");
+                                ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
+                            }
+                        }
+                    }
+                }
+                break;
+
+            default:
+            ;
         }
-
-        //尺寸测量
-        if(msgbox.exec() == QMessageBox::Ok)
-        {
-            Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
-            cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
-
-            Mat m_src = opencv_measure(src,minArea);             //尺寸测量
-            QImage mat_img = cvMat2QImage(m_src);        //Mat 转 QImage
-            QPixmap ms_img = QPixmap::fromImage(mat_img);  //QImage转QPixmap
-
-
-            //显示
-            QMessageBox msg_measure(QMessageBox::NoIcon, NULL, NULL, QMessageBox::Yes | QMessageBox::No );
-            msg_measure.setButtonText(QMessageBox::Yes,"保存");    //保存
-            msg_measure.setButtonText(QMessageBox::No,"取消");   //取消
-
-            //msg_measure.setGeometry(0,32,340,240);
-
-            QPixmap mm_img = ms_img.scaled(480,222,Qt::KeepAspectRatio);  //适度缩放,优化显示效果 360 222
-            msg_measure.setIconPixmap(mm_img);    //将图片显示在对话框中
-
-            //保存
-            if(msg_measure.exec() == QMessageBox::Yes)
-            {
-                //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-                bool ret = ms_img.save(outfile);   //保存图片
-                if(!ret){
-                    ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
-                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-                }
-                else{
-                    ui->lineEdit_TipShow->setText("图片保存成功！");
-                    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
-                }
-            }
-
-         }
     }
-
-
     capTimer->start(1000.000/FPS);  //重启采集定时器
     showTimer->start(1000.000/FPS);  //重启显示刷新
 }

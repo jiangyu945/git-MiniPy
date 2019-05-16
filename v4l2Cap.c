@@ -28,7 +28,10 @@ uchar *jpg_buf=NULL;   //用于存储临时图像
 uint size_jpg;
 
 
-/*获取当前时间（化为总ms数）*/
+/*
+ *  获取当前时间（化为总ms数）
+ *  @return int  返回值，0成功，-1失败
+ */
 int get_time_now()
 {
     struct timeval now;
@@ -36,7 +39,11 @@ int get_time_now()
     return (now.tv_sec * 1000 + now.tv_usec / 1000);
 }
 
-
+/*
+ *  us定时器
+ *  @param  us   定时时间
+ *  @return int  返回值，0成功，-1失败
+ */
 int usTimer(long us)
 {
     struct timeval timeout;
@@ -131,6 +138,10 @@ void yuyv_to_rgb888(uchar* yuyv, uchar* rgb888, uint width, uint height)
         }
 }
 
+/*
+ *  打开摄像头
+ *  @return int  返回值，0成功，-1失败
+ */
 int open_cam()
 {
     struct v4l2_capability cap;
@@ -160,6 +171,10 @@ int open_cam()
     return 0;
 }
 
+/*
+ *  获取摄像头参数
+ *  @return int  返回值，0成功，-1失败
+ */
 int get_cap_para(){
 
 
@@ -367,6 +382,10 @@ int get_cap_para(){
 
 }
 
+/*
+ *  设置摄像头参数
+ *  @return int  返回值，0成功，-1失败
+ */
 void set_cap_para()
 {
     PRINT("【*********************设置分辨率、格式：****************************】\n");
@@ -560,7 +579,12 @@ void set_cap_para()
 
 }
 
-//设置白平衡色温
+
+/*
+ *  设置白平衡色温
+ *  @param  value   色温值
+ *  @return void
+ */
 void set_cap_wb(int value)
 {
     PRINT("【*********************设置白平衡色温：*****************************】\n");
@@ -574,6 +598,11 @@ void set_cap_wb(int value)
     PRINT("\n");
 }
 
+/*
+ *  设置白平衡色温
+ *  @param  value   曝光值
+ *  @return void
+ */
 void setExposureTime(int value)
 {
     /***********设置曝光绝对值***************************/
@@ -645,7 +674,13 @@ void start_cap()
     ioctl(cam_fd, VIDIOC_STREAMON, &type);
 }
 
-//图像数据处理
+
+/*
+ *  图像数据处理
+ *  @param  addr   图像数据地址
+ *  @param  length 数据长度
+ *  @return void
+ */
 void process_img(void* addr,int length)
 {
     //申请格式转换后的数据存储buffer

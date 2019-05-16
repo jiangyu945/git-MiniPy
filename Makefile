@@ -52,13 +52,15 @@ SOURCES       = main.cpp \
 		widget.cpp \
 		v4l2Cap.c \
 		workerthread.cpp \
-		opencv_measure.cpp moc_widget.cpp \
+		opencv_measure.cpp \
+		makeexif.c moc_widget.cpp \
 		moc_workerthread.cpp
 OBJECTS       = main.o \
 		widget.o \
 		v4l2Cap.o \
 		workerthread.o \
 		opencv_measure.o \
+		makeexif.o \
 		moc_widget.o \
 		moc_workerthread.o
 DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
@@ -161,11 +163,13 @@ DIST          = /opt/qt5.7.0/mkspecs/features/spec_pre.prf \
 		MiniPy.pro widget.h \
 		v4l2Cap.h \
 		workerthread.h \
-		opencv_measure.h main.cpp \
+		opencv_measure.h \
+		exifparam.h main.cpp \
 		widget.cpp \
 		v4l2Cap.c \
 		workerthread.cpp \
-		opencv_measure.cpp
+		opencv_measure.cpp \
+		makeexif.c
 QMAKE_TARGET  = MiniPy
 DESTDIR       = 
 TARGET        = MiniPy
@@ -394,8 +398,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents widget.h v4l2Cap.h workerthread.h opencv_measure.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c workerthread.cpp opencv_measure.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents widget.h v4l2Cap.h workerthread.h opencv_measure.h exifparam.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp widget.cpp v4l2Cap.c workerthread.cpp opencv_measure.cpp makeexif.c $(DISTDIR)/
 	$(COPY_FILE) --parents widget.ui $(DISTDIR)/
 
 
@@ -1420,7 +1424,8 @@ workerthread.o: workerthread.cpp workerthread.h \
 		/opt/qt5.7.0/include/QtGui/qpixmap.h \
 		/opt/qt5.7.0/include/QtCore/QTime \
 		/opt/qt5.7.0/include/QtCore/qdatetime.h \
-		v4l2Cap.h
+		v4l2Cap.h \
+		exifparam.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o workerthread.o workerthread.cpp
 
 opencv_measure.o: opencv_measure.cpp opencv_measure.h \
@@ -1543,6 +1548,9 @@ opencv_measure.o: opencv_measure.cpp opencv_measure.h \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/wobble_suppression.hpp \
 		../../../opencv/opencv-3.2.0/output/include/opencv2/videostab/ring_buffer.hpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o opencv_measure.o opencv_measure.cpp
+
+makeexif.o: makeexif.c exifparam.h
+	$(CC) -c $(CFLAGS) $(INCPATH) -o makeexif.o makeexif.c
 
 moc_widget.o: moc_widget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_widget.o moc_widget.cpp

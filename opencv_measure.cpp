@@ -2,7 +2,14 @@
 
 #define  PHY_LEN   114.0      //参照物较长边边长的物理长度
 
-//文本绘制
+
+/*
+ *  在图片上绘制文本信息
+ *  @param  img   目标图片
+ *  @param  text  文本信息
+ *  @param  origin 文本绘制位置
+ *  @return 无
+ */
 void PaintText(Mat& img, char* text, Point origin)
 {
     int fontface = CV_FONT_HERSHEY_SIMPLEX;   //字体
@@ -19,6 +26,13 @@ void PaintText(Mat& img, char* text, Point origin)
     putText(img, text, origin, fontface, fontscale, textcolor, thickness, linetype);
 }
 
+/*
+ *  寻找最小轮廓，绘制矩形及尺寸标注
+ *  @param  threshold_output   二值图像
+ *  @param  src  原始图片
+ *  @param  minArea   最小轮廓阈值
+ *  @return Mat  返回值，Mat类型图像数据
+ */
 Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
 {
     bool flag = false;   //查找比例尺标志
@@ -26,7 +40,7 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
 
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
-    //寻找轮廓，输入必须为二值图像
+    //寻找轮廓(只查找最外层轮廓)，输入必须为二值图像
     findContours(threshold_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0)); //CV_CHAIN_APPROX_SIMPLE
 
     //第一轮筛选：移除过短的轮廓
@@ -138,6 +152,12 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
     //imshow("测量结果", src);
 }
 
+/*
+ *  尺寸测量
+ *  @param  origin   输入图像
+ *  @param  minArea   最小轮廓阈值
+ *  @return Mat  返回值，Mat类型图像数据
+ */
 Mat opencv_measure(Mat& origin,int minArea)
 {
     Mat  src,m_src,src_gray, edge;
@@ -146,18 +166,15 @@ Mat opencv_measure(Mat& origin,int minArea)
     {
         std::cout << "Original image is empty!" << std::endl;
     }
-    //origin.copyTo(src);
+
     src = origin.clone(); //深拷贝
 
-    //resize(src, src, Size(src.cols * 2, src.rows * 2));  //切记等比例缩放，否则实际尺寸会改变
-
-
-    //GaussianBlur(src, src, Size(3, 3), BORDER_DEFAULT);  //高斯模糊
+    GaussianBlur(src, m_src, Size(3, 3), BORDER_DEFAULT);  //高斯模糊
                                                          //blur(src, src, Size(3, 3)); //均值滤波
                                                          //medianBlur(src, src, 3);   //中值滤波
-    bilateralFilter(src, m_src, 25, 25 * 2, 25 / 2);     //保留边缘效果最好,双边滤波不支持in-place操作
+    //经调试发现：此处使用双边滤波会导致系统崩溃，原因未知！！！
+    //bilateralFilter(src, m_src, 25, 25 * 2, 25 / 2);     //保留边缘效果最好,双边滤波不支持in-place操作
                                                          //imshow("滤波效果", src);
-
     //（图像卷积运算）滤波器。（很重要，可增强对比度，否则部分背光区域边缘轮廓无法找到）
     Mat kernel = (Mat_<int>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
     filter2D(m_src, m_src, -1, kernel, Point(-1, -1), 0);

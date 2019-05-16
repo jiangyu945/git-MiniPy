@@ -27,12 +27,14 @@ SOURCES += main.cpp\
         widget.cpp \
     v4l2Cap.c \
     workerthread.cpp \
-    opencv_measure.cpp
+    opencv_measure.cpp \
+    makeexif.c
 
 HEADERS  += widget.h \
     v4l2Cap.h \
     workerthread.h \
-    opencv_measure.h
+    opencv_measure.h \
+    exifparam.h
 
 FORMS    += widget.ui
 

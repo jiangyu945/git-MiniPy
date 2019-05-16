@@ -96,7 +96,7 @@ public:
 "color: rgb(83, 83, 83);"));
         ExposureSlider = new QSlider(Widget);
         ExposureSlider->setObjectName(QStringLiteral("ExposureSlider"));
-        ExposureSlider->setGeometry(QRect(0, 238, 390, 34));
+        ExposureSlider->setGeometry(QRect(10, 238, 380, 34));
         ExposureSlider->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
 " \n"
 "border: 0px solid #bbb;\n"
@@ -205,7 +205,8 @@ public:
 "color: rgb(84, 87, 255);"));
         line_8 = new QFrame(Widget);
         line_8->setObjectName(QStringLiteral("line_8"));
-        line_8->setGeometry(QRect(0, 58, 10, 180));
+        line_8->setGeometry(QRect(0, 28, 10, 244));
+        line_8->setStyleSheet(QStringLiteral(""));
         line_8->setFrameShape(QFrame::VLine);
         line_8->setFrameShadow(QFrame::Sunken);
         line_9 = new QFrame(Widget);
@@ -230,7 +231,7 @@ public:
         line_7->setFrameShadow(QFrame::Sunken);
         Slider_MinArea = new QSlider(Widget);
         Slider_MinArea->setObjectName(QStringLiteral("Slider_MinArea"));
-        Slider_MinArea->setGeometry(QRect(0, 28, 390, 30));
+        Slider_MinArea->setGeometry(QRect(10, 28, 380, 30));
         Slider_MinArea->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
 " \n"
 "border: 0px solid #bbb;\n"

@@ -10,7 +10,7 @@ workerThread::workerThread(QObject *parent) : QObject(parent)
 
 }
 
-
+//读取一帧图像数据
 void workerThread::doProcessReadFrame()
 {
 //    tt.start();
@@ -18,9 +18,9 @@ void workerThread::doProcessReadFrame()
 
     read_frame();  //获取一帧图像
     QImage img;
+
     img.loadFromData(jpg_buf,size_jpg);  //加载图像数据到img
     //QImage *rgb_img = new QImage(rgb_buf,WIDTH,HEIGHT,WIDTH*3,QImage::Format::RGB888);
-
     free(jpg_buf);  //释放临时缓存空间
 
     emit SigToDisplay(img);  //发送显示信号

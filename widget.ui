@@ -144,9 +144,9 @@ color: rgb(83, 83, 83);</string>
   <widget class="QSlider" name="ExposureSlider">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>238</y>
-     <width>390</width>
+     <width>380</width>
      <height>34</height>
     </rect>
    </property>
@@ -296,10 +296,13 @@ color: rgb(84, 87, 255);</string>
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>58</y>
+     <y>28</y>
      <width>10</width>
-     <height>180</height>
+     <height>244</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
@@ -361,9 +364,9 @@ color: rgb(142, 212, 255);</string>
   <widget class="QSlider" name="Slider_MinArea">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>28</y>
-     <width>390</width>
+     <width>380</width>
      <height>30</height>
     </rect>
    </property>

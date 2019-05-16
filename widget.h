@@ -19,6 +19,7 @@
 #include "v4l2Cap.h"
 #include "workerthread.h"
 #include "opencv_measure.h"
+#include "exifparam.h"
 
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   320    //屏宽(仅指可显示宽度)
@@ -84,7 +85,7 @@ private:
     workerThread* workerObj; //次线程工作对象
 
     QTime t;
-    bool cwb_flag;  //白平衡矫正标志
+    int cwb_flag;  //白平衡矫正标志
     bool line_flag; //尺寸测量分界线
     int minArea;   //最小轮廓面积
 
@@ -93,5 +94,6 @@ private:
     void showTime();        //日期显示
     float getGrayPixel(QPixmap);  //获取灰度值
 };
+
 
 #endif // WIDGET_H

@@ -1,3 +1,8 @@
+/*
+* Author: Greein_Jy
+* Date  : 2018-12-12
+*/
+
 #include "widget.h"
 #include <QApplication>
 #include <QTextCodec>
