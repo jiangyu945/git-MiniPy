@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include "v4l2Cap.h"
 #include "exifparam.h"
 
 #define IN
@@ -21,6 +22,7 @@
 #define MAX_FILE_THUMB_SIZE                     (MAX_JPG_THUMBNAIL_WIDTH * MAX_JPG_THUMBNAIL_HEIGHT)
 
 extern int ex_value;
+extern int no_ntp;
 
 static const int APP1HeaderLen = 0x0C;
 static UCHAR APP1Marker[] = {0xFF, 0xE1};
@@ -1241,7 +1243,7 @@ int makeNewSatJpgFromBuf( IN const UCHAR *src_file, IN const UCHAR *dest_file, I
     int value = fstat( src_fd, &_stat );
     if( 0 == value ) {
             src_size = _stat.st_size;
-            printf("++++++get file size %d\n", src_size);
+            //printf("++++++get file size %d\n", src_size);
     } else {
             printf("++++++get file size failed++++%s,%d\n", __FILE__, __LINE__);
             close(src_fd);
@@ -1266,7 +1268,7 @@ int makeNewSatJpgFromBuf( IN const UCHAR *src_file, IN const UCHAR *dest_file, I
             return -1;
     }
     int write_size = write( dest_fd, buf_dest, src_size );//copy src to dest jpg
-            printf("++++++read file write_size:%d  src_size:%d\n", write_size,src_size);
+            //printf("++++++read file write_size:%d  src_size:%d\n", write_size,src_size);
     free(buf_dest);
     if( write_size != src_size ) {
             printf("++++++open file failed %s,%d\n", __FILE__, __LINE__);
@@ -1341,20 +1343,54 @@ int makeExif(int cwb_flag){
 
     //构造图片名
     UCHAR infile[100] = "/media/mmcblk1p1/pictures/src.jpg";
+    UCHAR outfile[100] = {0};
 
-    struct tm *ptr;
-    time_t t;
-    UCHAR outfile[100];
-    time(&t);
-    ptr = localtime(&t);
-    if(!cwb_flag){  //未进行白平衡矫正
-        strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S_ucwb",ptr);
-        strcat(outfile,".jpg");
+    if(no_ntp){  //未获取到网络时间,采用RTC
+        int fd, retval;
+        struct rtc_time rtc_tm;
+        char temp_buf[19] = {0};
+
+        fd = open("/dev/rtc1", O_RDONLY);
+        if (fd == -1) {
+                perror("/dev/rtc1");
+                exit(errno);
+        }
+
+        /* Read the RTC time/date */
+        retval = ioctl(fd, RTC_RD_TIME, &rtc_tm);
+        if (retval == -1) {
+                perror("ioctl");
+                exit(errno);
+        }
+        close(fd);
+
+        strcpy(outfile,"/media/mmcblk1p1/pictures/Greein_");
+        sprintf(temp_buf, "%04d%02d%02d_%02d%02d%02d",
+                rtc_tm.tm_year + 1900, rtc_tm.tm_mon + 1,rtc_tm.tm_mday,
+                rtc_tm.tm_hour, rtc_tm.tm_min, rtc_tm.tm_sec);
+        strcat(outfile,temp_buf);
+        if(!cwb_flag){  //未进行白平衡矫正
+            strcat(outfile,"_ucwb.jpg");
+        }
+        else{ //已进行白平衡矫正
+            strcat(outfile,".jpg");
+        }
     }
-    else{  //已进行白平衡矫正
-        strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
-        strcat(outfile,".jpg");
+    else{ //成功获取到网络时间
+        struct tm *ptr;
+        time_t t;
+        time(&t);
+        ptr = localtime(&t);
+        if(!cwb_flag){  //未进行白平衡矫正
+            strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S_ucwb",ptr);
+            strcat(outfile,".jpg");
+        }
+        else{  //已进行白平衡矫正
+            strftime(outfile,sizeof(outfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
+            strcat(outfile,".jpg");
+        }
     }
+
 
     makeNewSatJpgFromBuf( infile, outfile,ExifBuf, ExifLen);
     free(ExifInfo);

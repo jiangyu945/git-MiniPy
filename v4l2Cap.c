@@ -29,7 +29,7 @@ uint size_jpg;
 
 
 /*
- *  获取当前时间（化为总ms数）
+ *  获取当前系统时间（化为总ms数）
  *  @return int  返回值，0成功，-1失败
  */
 int get_time_now()
@@ -37,6 +37,31 @@ int get_time_now()
     struct timeval now;
     gettimeofday(&now, NULL);
     return (now.tv_sec * 1000 + now.tv_usec / 1000);
+}
+
+//获取RTC时间
+void Greein_get_rtc_time(char* time_buf)
+{
+    int fd, retval;
+    struct rtc_time rtc_tm;
+
+    fd = open("/dev/rtc1", O_RDONLY);
+    if (fd == -1) {
+            perror("/dev/rtc1");
+            exit(errno);
+    }
+
+    /* Read the RTC time/date */
+    retval = ioctl(fd, RTC_RD_TIME, &rtc_tm);
+    if (retval == -1) {
+            perror("ioctl");
+            exit(errno);
+    }
+    close(fd);
+
+    sprintf(time_buf, "%04d/%02d/%02d_%02d:%02d:%02d\n",
+            rtc_tm.tm_year + 1900, rtc_tm.tm_mon + 1,rtc_tm.tm_mday,
+            rtc_tm.tm_hour, rtc_tm.tm_min, rtc_tm.tm_sec);
 }
 
 /*

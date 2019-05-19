@@ -19,6 +19,7 @@
 #include <time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <linux/rtc.h>
 
 #include <sys/epoll.h>
 
@@ -57,6 +58,7 @@ typedef unsigned int  uint;
 
 
 int get_time_now();  //获取当前时间
+void Greein_get_rtc_time(char*); //获取RTC时间
 int usTimer(long);   //us定时器
 void yuyv_to_rgb888(uchar*,uchar*,uint,uint);  //yuyv转rgb888
 int open_cam();       //打开摄像头

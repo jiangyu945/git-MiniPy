@@ -5,6 +5,7 @@ static float whitePixel = 255.0f;  //白色像素值
 QMutex myMutex;
 
 int ex_value = 300;  //曝光值
+int no_ntp = 0;   //未获得网络时间标志
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -95,24 +96,45 @@ void Widget::startObjthread()
     worker.start();
 }
 
+
 //显示当前时间
 void Widget::showTime()
 {
     struct tm *ptr;
     time_t t;
-    char nowtime[20];
+    char ostime[21] = {0};
+    char rtc_time[21] = {0};
     time(&t);
     ptr = localtime(&t);
-    strftime(nowtime,sizeof(nowtime),"%Y/%m/%d_%H:%M:%S",ptr); //时间格式化
-    nowtime[sizeof(nowtime)-1] = '\0';
+    strftime(ostime,sizeof(ostime),"%Y/%m/%d_%H:%M:%S",ptr); //时间格式化
 
-    ui->lineEdit_TipShow->setText(nowtime); //设置文本内容
-    ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+    Greein_get_rtc_time(&rtc_time[0]);  //获取RTC时间
 
-//    //判断当前时间是否准确
-//    if(!(nowtime[2]>49 || nowtime[3]>50)){  //49、50分别为“1”、“2”的ASCII码值
-//        ui->Bt_CamOpen->setEnabled(false);
+    //比较系统时间和RTC时间，若相同代表网络时间获取成功，否则为失败
+    int ret = memcmp(ostime,rtc_time,13);
+//    printf("ostime: %s\n",ostime);
+//    printf("rtc_time: %s\n",rtc_time);
+//    for(int i =0;i<sizeof(ostime);i++){
+//        printf("ostime[%d]: %c ",i,ostime[i]);
 //    }
+//    printf("\n");
+//    for(int j =0;j<sizeof(rtc_time);j++){
+//        printf("rtc_time[%d]: %c ",j,rtc_time[j]);
+//    }
+//    printf("\n");
+
+    if(ret != 0){  //网络时间获取失败，使用RTC时间
+        no_ntp = 1;   //将未获取到网络时间标志置“1”
+        char time_text[100]={0};
+        strcpy(time_text,"RTC_Time:");
+        strcat(time_text,rtc_time);
+        ui->lineEdit_TipShow->setText(time_text); //设置文本内容
+        ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+    }
+    else{  //成功获取到网络时间
+        ui->lineEdit_TipShow->setText(ostime); //设置文本内容
+        ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+    }
 }
 
 //Mat转QImage
@@ -585,8 +607,8 @@ void Widget::doProcessViewImg()
             //尺寸测量
             case QMessageBox::Ok :
                 {
-
-                    Mat src = QImage2cvMat(cal_img);        //QImage 转 Mat
+                    QImage msp_img = sp_img.toImage();
+                    Mat src = QImage2cvMat(msp_img);        //QImage 转 Mat
                     cvtColor(src,src,CV_RGBA2RGB);        //此步骤特别重要！使CV_8UC4的RGBA转为CV_8UC3的RGB
 
                     Mat m_src = opencv_measure(src,minArea);             //尺寸测量

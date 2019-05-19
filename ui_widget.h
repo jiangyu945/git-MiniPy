@@ -44,6 +44,7 @@ public:
     QDial *dial_Time;
     QFrame *line_7;
     QSlider *Slider_MinArea;
+    QFrame *line_10;
 
     void setupUi(QWidget *Widget)
     {
@@ -96,7 +97,7 @@ public:
 "color: rgb(83, 83, 83);"));
         ExposureSlider = new QSlider(Widget);
         ExposureSlider->setObjectName(QStringLiteral("ExposureSlider"));
-        ExposureSlider->setGeometry(QRect(10, 238, 380, 34));
+        ExposureSlider->setGeometry(QRect(30, 238, 360, 34));
         ExposureSlider->setStyleSheet(QLatin1String("QSlider::groove:horizontal {\n"
 " \n"
 "border: 0px solid #bbb;\n"
@@ -321,6 +322,11 @@ public:
 " \n"
 ""));
         Slider_MinArea->setOrientation(Qt::Horizontal);
+        line_10 = new QFrame(Widget);
+        line_10->setObjectName(QStringLiteral("line_10"));
+        line_10->setGeometry(QRect(10, 238, 20, 34));
+        line_10->setFrameShape(QFrame::HLine);
+        line_10->setFrameShadow(QFrame::Sunken);
 
         retranslateUi(Widget);
 
