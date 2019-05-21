@@ -26,6 +26,7 @@ void PaintText(Mat& img, char* text, Point origin)
     putText(img, text, origin, fontface, fontscale, textcolor, thickness, linetype);
 }
 
+
 /*
  *  寻找最小轮廓，绘制矩形及尺寸标注
  *  @param  threshold_output   二值图像

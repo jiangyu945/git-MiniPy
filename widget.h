@@ -21,6 +21,9 @@
 #include "opencv_measure.h"
 #include "exifparam.h"
 
+#define  SRC_FILE   "/media/mmcblk1p1/pictures/src.jpg"
+
+
 #define    FPS    30         //帧率
 #define  SHOW_WIDTH   320    //屏宽(仅指可显示宽度)
 #define  SHOW_HEIGHT  180    //屏高(仅指可显示高度)

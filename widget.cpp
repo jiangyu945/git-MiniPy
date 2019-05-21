@@ -112,16 +112,6 @@ void Widget::showTime()
 
     //比较系统时间和RTC时间，若相同代表网络时间获取成功，否则为失败
     int ret = memcmp(ostime,rtc_time,13);
-//    printf("ostime: %s\n",ostime);
-//    printf("rtc_time: %s\n",rtc_time);
-//    for(int i =0;i<sizeof(ostime);i++){
-//        printf("ostime[%d]: %c ",i,ostime[i]);
-//    }
-//    printf("\n");
-//    for(int j =0;j<sizeof(rtc_time);j++){
-//        printf("rtc_time[%d]: %c ",j,rtc_time[j]);
-//    }
-//    printf("\n");
 
     if(ret != 0){  //网络时间获取失败，使用RTC时间
         no_ntp = 1;   //将未获取到网络时间标志置“1”
@@ -134,6 +124,7 @@ void Widget::showTime()
     else{  //成功获取到网络时间
         ui->lineEdit_TipShow->setText(ostime); //设置文本内容
         ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
+        system("hwclock -w");  //同步系统时钟到RTC
     }
 }
 
@@ -207,6 +198,30 @@ cv::Mat QImage2cvMat(QImage image)
         break;
     }
     return mat;
+}
+
+
+//打印时间到图片上
+QImage addTimeToImg(QImage img)
+{
+    cv::Mat src = QImage2cvMat(img);
+    char ostime[21] = {0};
+    char rtc_time[21] = {0};
+
+    //获取当前时间
+    if(no_ntp){
+        Greein_get_rtc_time(&rtc_time[0]);  //获取RTC时间
+        PaintText(src, rtc_time, cv::Point(10,30));
+    }
+    else{
+        struct tm *ptr;
+        time_t t;
+        time(&t);
+        ptr = localtime(&t);
+        strftime(ostime,sizeof(ostime),"%Y/%m/%d_%H:%M:%S",ptr); //时间格式化
+        PaintText(src, ostime, cv::Point(10,30));
+    }
+    return cvMat2QImage(src);
 }
 
 //获取灰度值
@@ -514,7 +529,7 @@ void Widget::doProcessViewImg()
 //    ptr = localtime(&t);
 //    strftime(srcfile,sizeof(srcfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
 //    strcat(srcfile,".jpg");
-    char srcfile[50]= "/media/mmcblk1p1/pictures/src.jpg";
+    //char srcfile[50]= "/media/mmcblk1p1/pictures/src.jpg";
 
     //未进行白平衡矫正
     if(!cwb_flag){
@@ -536,7 +551,9 @@ void Widget::doProcessViewImg()
         if(noCwbBox.exec() == QMessageBox::Yes)
         {
             //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-            bool ret = sp_img.save(srcfile);   //保存图片
+            QImage img_tmp = sp_img.toImage();
+            QImage img_time = addTimeToImg(img_tmp);
+            bool ret = img_time.save(SRC_FILE);   //保存图片
             if(!ret){
                 ui->lineEdit_TipShow->setText("警告！ 保存失败！！！"); //Warning! Save Failed!!!
                 ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
@@ -584,7 +601,8 @@ void Widget::doProcessViewImg()
             case QMessageBox::Yes :
                 {
                     //pp_img = sp_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-                    bool ret = cal_img.save(srcfile);    //保存图片
+                    QImage img_time = addTimeToImg(cal_img);
+                    bool ret = img_time.save(SRC_FILE);    //保存图片
                     if(!ret){
                         ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
                         ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
@@ -630,7 +648,9 @@ void Widget::doProcessViewImg()
                     if(msg_measure.exec() == QMessageBox::Yes)
                     {
                         //QPixmap ss_img = ms_img.scaled(WIDTH,HEIGHT,Qt::IgnoreAspectRatio);  //放大为采集分辨率
-                        bool ret = ms_img.save(srcfile);   //保存图片
+                        QImage img_tmp = ms_img.toImage();
+                        QImage img_time = addTimeToImg(img_tmp);
+                        bool ret = img_time.save(SRC_FILE);   //保存图片
                         if(!ret){
                             ui->lineEdit_TipShow->setText("警告！ 保存失败！！！");
                             ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);
