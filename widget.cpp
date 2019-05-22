@@ -124,7 +124,6 @@ void Widget::showTime()
     else{  //成功获取到网络时间
         ui->lineEdit_TipShow->setText(ostime); //设置文本内容
         ui->lineEdit_TipShow->setAlignment(Qt::AlignCenter);  //居中对齐
-        system("hwclock -w");  //同步系统时钟到RTC
     }
 }
 
@@ -205,21 +204,46 @@ cv::Mat QImage2cvMat(QImage image)
 QImage addTimeToImg(QImage img)
 {
     cv::Mat src = QImage2cvMat(img);
+    cv::cvtColor(src,src,CV_RGBA2RGB);
     char ostime[21] = {0};
     char rtc_time[21] = {0};
 
-    //获取当前时间
-    if(no_ntp){
-        Greein_get_rtc_time(&rtc_time[0]);  //获取RTC时间
-        PaintText(src, rtc_time, cv::Point(10,30));
+    if(no_ntp){  //获取RTC时间
+        Greein_get_rtc_time(&rtc_time[0]);
+        PaintText(src, rtc_time,cv::Scalar(0, 0, 255),2/*线宽*/, cv::Point(10,30));
+        /********************************添加logo***************************************/
+        cv::Mat logo = cv::imread(GREEIN_LOGO);
+        if(logo.empty())
+        {
+            std::cout << "logo load failed!" << std::endl;
+        }
+        //在图片右下角创建一个感兴趣区域
+        cv::Mat imageROI(src, cv::Rect(src.cols-logo.cols, src.rows-logo.rows, //ROI坐标
+                                        logo.cols, logo.rows));    //ROI大小
+        //插入logo
+        logo.copyTo(imageROI);
+        //PaintText(src, GREEIN_LOGO, cv::Scalar(0, 255, 0),2,cv::Point(src.cols-100,src.rows-10));
     }
-    else{
+    else{   //获取系统时间
         struct tm *ptr;
         time_t t;
         time(&t);
         ptr = localtime(&t);
         strftime(ostime,sizeof(ostime),"%Y/%m/%d_%H:%M:%S",ptr); //时间格式化
-        PaintText(src, ostime, cv::Point(10,30));
+        PaintText(src, ostime,cv::Scalar(0, 0, 255), 2, cv::Point(10,30));
+
+        /********************************添加logo***************************************/
+        cv::Mat logo = cv::imread(GREEIN_LOGO);
+        if(logo.empty())
+        {
+            std::cout << "logo load failed!" << std::endl;
+        }
+        //在图片右下角创建一个感兴趣区域
+        cv::Mat imageROI(src, cv::Rect(src.cols-logo.cols, src.rows-logo.rows, //ROI坐标
+                                        logo.cols, logo.rows));    //ROI大小
+        //插入logo
+        logo.copyTo(imageROI);
+        //PaintText(src, GREEIN_LOGO, cv::Scalar(0, 255, 0), 2, cv::Point(src.cols-100,src.rows-10));
     }
     return cvMat2QImage(src);
 }
@@ -520,16 +544,6 @@ void Widget::doProcessViewImg()
 {    
     capTimer->stop();   //停止后台采集
     showTimer->stop();  //停止显示刷新
-
-//    //构造带时间戳的图片名
-//    struct tm *ptr;
-//    time_t t;
-//    char srcfile[100];
-//    time(&t);
-//    ptr = localtime(&t);
-//    strftime(srcfile,sizeof(srcfile),"/media/mmcblk1p1/pictures/Greein_%Y%m%d_%H%M%S",ptr);
-//    strcat(srcfile,".jpg");
-    //char srcfile[50]= "/media/mmcblk1p1/pictures/src.jpg";
 
     //未进行白平衡矫正
     if(!cwb_flag){

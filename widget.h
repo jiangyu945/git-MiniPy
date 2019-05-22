@@ -21,6 +21,8 @@
 #include "opencv_measure.h"
 #include "exifparam.h"
 
+
+#define  GREEIN_LOGO  "/img/greein_logo.jpg"
 #define  SRC_FILE   "/media/mmcblk1p1/pictures/src.jpg"
 
 

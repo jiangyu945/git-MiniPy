@@ -9,9 +9,9 @@
 using namespace cv;
 using namespace std;
 
-void PaintText(Mat& , char* , Point);
-Mat fineMinAreaRect(Mat&, Mat&,int);
-Mat opencv_measure(Mat&,int);
+void PaintText(cv::Mat& , char* ,cv::Scalar,int , cv::Point);
+cv::Mat fineMinAreaRect(cv::Mat&, cv::Mat&,int);
+cv::Mat opencv_measure(cv::Mat&,int);
 
 
 

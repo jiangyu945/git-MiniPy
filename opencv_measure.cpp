@@ -7,21 +7,23 @@
  *  在图片上绘制文本信息
  *  @param  img   目标图片
  *  @param  text  文本信息
+ *  @textcolor    文本颜色
+ *  @thickness    线宽
  *  @param  origin 文本绘制位置
  *  @return 无
  */
-void PaintText(Mat& img, char* text, Point origin)
+void PaintText(cv::Mat& img, char* text,cv::Scalar textcolor, int thickness, cv::Point origin)
 {
     int fontface = CV_FONT_HERSHEY_SIMPLEX;   //字体
     double fontscale = 1.0;                   //尺寸因子，值越大文字越大
-    Scalar textcolor = Scalar(0, 0, 255);    //文本颜色
-    int thickness = 4;  //线宽
+   // Scalar textcolor = Scalar(0, 0, 255);    //文本颜色
+    //int thickness = 4;  //线宽
     int linetype = 8;   //线型
 
-                        //int baseline;
+    //int baseline;
 
-                        //获取文本框的长宽
-                        //Size text_size = getTextSize(text, fontface, fontscale, thickness, &baseline);
+    //获取文本框的长宽
+    //Size text_size = getTextSize(text, fontface, fontscale, thickness, &baseline);
 
     putText(img, text, origin, fontface, fontscale, textcolor, thickness, linetype);
 }
@@ -131,7 +133,7 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
 
         paint_point.x = (rect_points[0].x + rect_points[1].x) / 2;    //寻找中点
         paint_point.y = (rect_points[0].y + rect_points[1].y) / 2;
-        PaintText(src, text, paint_point);   //尺寸标注
+        PaintText(src, text,cv::Scalar(0, 0, 255),4, paint_point);   //尺寸标注
 
         //第二条边
         line(src, rect_points[1], rect_points[2], Scalar(255, 0, 0), 2, 8);  //蓝色边长
@@ -139,7 +141,7 @@ Mat fineMinAreaRect(Mat &threshold_output, Mat &src,int minArea)
         sprintf(text, "%.3lfmm", length);
         paint_point.x = (rect_points[1].x + rect_points[2].x) / 2;
         paint_point.y = (rect_points[1].y + rect_points[2].y) / 2;
-        PaintText(src, text, paint_point);
+        PaintText(src, text,cv::Scalar(0, 0, 255),4, paint_point);
 
         //第三、四条边
         line(src, rect_points[2], rect_points[3], Scalar(0, 255, 0), 2, 8);
